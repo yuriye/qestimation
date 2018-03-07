@@ -23,26 +23,19 @@ public class Main {
         String orderCode = "0656051";
         HttpAdapter adapter = HttpAdapter.getInstance();
         Map mkguFormVersion = adapter.getMkguFormVersion(orderCode);
+
         if ("OK".equals(mkguFormVersion.get("status"))) {
             MkguQuestionXmlRoot questions = getQuestions(mkguFormVersion, orderCode);
             System.out.println(questions.getQuestionTitle());
             System.out.println(questions.getOrderNumber());
             System.out.println(questions.getIndicator().size());
 
-//            questions.getIndicator().stream().forEach(e -> {
-            for(MkguQuestionXmlIndicator e:  questions.getIndicator()) {
+            questions.getIndicator().forEach(e -> {
                 System.out.println(e.getQuestionTitle());
                 System.out.println(e.getDescriptionTitle());
                 System.out.println(e.getIndicator());
                 System.out.println(e.getIndicatorId());
-            }
-
-//            });
-
-
-//            System.out.println(getQuestions(mkguFormVersion, "0656051").getQuestionTitle());
-//            List<MkguQuestionnaires> questionnaires = adapter.getMkguQuestionnaires();
-
+            });
         }
     }
 
