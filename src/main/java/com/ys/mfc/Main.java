@@ -31,11 +31,23 @@ public class Main {
         try {
             com.WacomGSS.STU.UsbDevice[] usbDevices = UsbDevice.getUsbDevices();
             if (usbDevices != null && usbDevices.length > 0) {
-                EstimationQuestionForm estimationQuestionForm = new EstimationQuestionForm( usbDevices[0],
-                        "2", "9",
-                        "Время предоставления государственной услугиВремя предоставления государственной услуги",
-                        "Оцените, соответствует ли срок предоставления услуги вашим ожиданиям и заявленному сроку с момента подачи заявления, включая комплект необходимых документов",
-                        null);
+                List<AnswerVariant> answerVariants = new ArrayList<>();
+                answerVariants.add(new AnswerVariant("41", "Очень плохо", "Услугу до сих пор не получил, несмотря на то, что срок предоставления давно истек"));
+                answerVariants.add(new AnswerVariant("42", "Плохо", "Заявленные сроки не соблюдаются и должны быть короче"));
+                answerVariants.add(new AnswerVariant("43", "Нормально", "Заявленные сроки соблюдаются, но могли бы быть немного короче"));
+                answerVariants.add(new AnswerVariant("44", "Хорошо", "Заявленные сроки полностью устраивают и соблюдаются"));
+                answerVariants.add(new AnswerVariant("45", "Отлично", "Отлично"));
+
+                String indicatorQueue = "2";
+                String indicatorId = "9";
+                String indicatorTitle = "Время предоставления государственной услугиВремя предоставления государственной услуги";
+                String indicatorDescription = "Оцените, соответствует ли срок предоставления услуги вашим ожиданиям и заявленному сроку с момента подачи заявления, включая комплект необходимых документов";
+                EstimationQuestionForm estimationQuestionForm =
+                        new EstimationQuestionForm(usbDevices[0],
+                                indicatorQueue, indicatorId,
+                                indicatorTitle,
+                                indicatorDescription,
+                                answerVariants);
 
                 estimationQuestionForm.setVisible(true);
                 estimationQuestionForm.dispose();
@@ -46,6 +58,8 @@ public class Main {
         } catch (STUException e) {
             e.printStackTrace();
         } catch (RuntimeException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
 

@@ -26,40 +26,32 @@ public class EstimationQuestionForm  extends JDialog implements ITabletHandler {
                                   String indicatorId,
                                   String indicatorTitle,
                                   String inkicatorDescription,
-                                  List<AnswerVariant> answerVariants) throws STUException {
+                                  List<AnswerVariant> answerVariants) throws STUException, InterruptedException {
         this.indicatorQueue = indicatorQueue;
         this.indicatorId = indicatorId;
         this.indicatorTitle = indicatorTitle;
         this.inkicatorDescription = inkicatorDescription;
         this.answerVariants = answerVariants;
         this.tablet = new Tablet();
-        // A more sophisticated applications should cycle for a few
-        // times as the connection may only be
-        // temporarily unavailable for a second or so.
-        // For example, if a background process such as Wacom STU
-        // Display
-        // is running, this periodically updates a slideshow of images
-        // to the device.
 
-        int e = tablet.usbConnect(usbDevice, true);
-        if (e == 0) {
-            this.capability = tablet.getCapability();
-            this.information = tablet.getInformation();
-        } else {
-            throw new RuntimeException(
-                    "Failed to connect to USB tablet, error " + e);
+        for (int i = 0; i < 10; i++) {
+            int e = tablet.usbConnect(usbDevice, true);
+            if (e == 0) {
+                this.capability = tablet.getCapability();
+                this.information = tablet.getInformation();
+                break;
+            } else {
+                if ( i < 9) {
+                    Thread.sleep(500);
+                    continue;
+                }
+                throw new RuntimeException("Failed to connect to USB tablet, error " + e);
+            }
         }
 
         // Set the size of the client window to be actual size,
         // based on the reported DPI of the monitor.
-
         int screenResolution = this.getToolkit().getScreenResolution();
-
-//                Dimension d = new Dimension(this.capability.getTabletMaxX()
-//                        * screenResolution / 2540,
-//                        this.capability.getTabletMaxY() * screenResolution
-//                                / 2540);
-
         Dimension d = new Dimension(this.capability.getTabletMaxX()
                 * screenResolution / 2540,
                 this.capability.getTabletMaxY() * screenResolution
