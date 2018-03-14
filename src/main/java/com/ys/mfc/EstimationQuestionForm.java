@@ -60,7 +60,7 @@ public class EstimationQuestionForm extends JDialog implements ITabletHandler {
             }
         }
 
-        this.headerHeight = this.capability.getScreenHeight() / 6;
+        this.headerHeight = this.capability.getScreenHeight() / 4;
 
         int offset = this.headerHeight;
 
@@ -141,11 +141,18 @@ public class EstimationQuestionForm extends JDialog implements ITabletHandler {
 
             double fontSize = (this.buttons.get(0).bounds.getHeight() / 3); // pixels
 //            double fontSize = (this.buttons.get(0).bounds.getWidth() / 45.00); // pixels
+
+
+            // Draw question
+            gfx.setColor(Color.BLACK);
             gfx.setFont(new Font("Courier New", Font.BOLD, (int) fontSize));
-
+            DrawingUtils.drawArrangedString(gfx, indicatorDescription,
+                    (int) 0, 0,
+                    (int) this.capability.getScreenWidth(),
+                    (int) this.headerHeight);
             // Draw the buttons
-
             boolean useColour = useColor; //effective final for lambda
+            gfx.setFont(new Font("Courier New", Font.BOLD, (int) fontSize));
             buttons.forEach(btn -> {
                 if (useColour) {
                     gfx.setColor(Color.PINK);

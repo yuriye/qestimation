@@ -29,11 +29,11 @@ public class DrawingUtils {
         int textWidth = fm.stringWidth(text);
         String head = "";
         String tail = "";
-
+        int headWidth = textWidth;
         a:
         if (textWidth > width) {
             int endOfHeadPos = text.length();
-            int headWidth = textWidth;
+
 
             while (headWidth >= width) {
                 endOfHeadPos = text.lastIndexOf(" ", endOfHeadPos - 1);
@@ -50,7 +50,8 @@ public class DrawingUtils {
             textY = y + (height - textHeight) / 2 + fm.getAscent();
             gfx.drawString(text, textX, textY);
         } else {
-            textX = 2;
+//            textX = x + (width - headWidth) / 2;
+            textX = 8;
             textY = y + (height / 2 - textHeight) / 2 + fm.getAscent();
             gfx.drawString(head, textX, textY);
             textY = textY + height / 2;
