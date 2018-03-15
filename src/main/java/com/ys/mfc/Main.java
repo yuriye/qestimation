@@ -52,6 +52,7 @@ public class Main {
 
                 estimationQuestionForm.setAnswerButtonListener(e -> System.out.println("Нажата кнопка ответа"));
                 estimationQuestionForm.setVisible(true);
+                Thread.sleep(50000);
                 estimationQuestionForm.dispose();
 
             } else {

@@ -7,6 +7,7 @@ import com.WacomGSS.STU.Tablet;
 import com.WacomGSS.STU.UsbDevice;
 
 import javax.swing.*;
+import javax.xml.bind.SchemaOutputResolver;
 import java.awt.*;
 import java.awt.Rectangle;
 import java.awt.event.ActionListener;
@@ -16,29 +17,32 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EstimationQuestionForm extends JDialog implements ITabletHandler {
+    List<AnswerVariant> answerVariants;
+    List<Button> buttons = new ArrayList<>();
     private String indicatorQueue;
     private String indicatorId;
     private String indicatorTitle;
     private String indicatorDescription;
-    List<AnswerVariant> answerVariants;
-
     private Tablet tablet;
     private Capability capability;
     private Information information;
-
     private String pressedButtonId;
-
     private int headerHeight = 0;
-
     private AnsewrButtonPressedListener answerButtonListener;
-
-    public void setAnswerButtonListener(AnsewrButtonPressedListener answerButtonListener) {
-        this.answerButtonListener = answerButtonListener;
-    }
-
-    List<Button> buttons = new ArrayList<>();
-
     private int pad = 4;
+    // The isDown flag is used like this:
+    // 0 = up
+    // +ve = down, pressed on button number
+    // -1 = down, inking
+    // -2 = down, ignoring
+    private int isDown;
+    private List<PenData> penData; // Array of data being stored. This can
+    private JPanel panel;
+    private BufferedImage bitmap; // This bitmap that we display on the
+    // screen.
+    private EncodingMode encodingMode; // How we send the bitmap to the
+    // device.
+    private byte[] bitmapData; // This is the flattened data of the bitmap
 
     public EstimationQuestionForm(UsbDevice usbDevice,
                                   String indicatorQueue,
@@ -210,34 +214,14 @@ public class EstimationQuestionForm extends JDialog implements ITabletHandler {
         // Enable the pen data on the screen (if not already)
         this.tablet.setInkingMode(InkingMode.Off);
         this.tablet.writeImage(this.encodingMode, this.bitmapData);
-        Thread.sleep(50000);
     }
 
-    private enum ButtonType {
-        NAV, ANSWERVARIANT;
+    public void setAnswerButtonListener(AnsewrButtonPressedListener answerButtonListener) {
+        this.answerButtonListener = answerButtonListener;
     }
+    // be subsequently used as desired.
 
-    private class Button {
-        Rectangle bounds; // in Screen coordinates
-        String text;
-        ButtonType buttonType = ButtonType.NAV;
-        String id = "";
-
-        void performClick() {
-            click.actionPerformed(null);
-        }
-
-        ActionListener click = (e -> {
-            EstimationQuestionForm.this.pressedButtonId = id;
-            EstimationQuestionForm.this.answerButtonListener
-                    .ansewrButtonPressed(new AnswerButtonPressedEvent(EstimationQuestionForm.this, "Button pressed id = " + id));
-        });
-    }
-
-    private static class RectangleDimensions {
-        int height = 0;
-        int widht = 0;
-    }
+//    private Button[] btns; // The array of buttons that we are emulating.
 
     RectangleDimensions getAnswerButtonDimension() {
         int buttonCount = answerVariants.size();
@@ -248,27 +232,6 @@ public class EstimationQuestionForm extends JDialog implements ITabletHandler {
         dim.widht = capability.getScreenWidth() - pad * 2;
         return dim;
     }
-
-    // The isDown flag is used like this:
-    // 0 = up
-    // +ve = down, pressed on button number
-    // -1 = down, inking
-    // -2 = down, ignoring
-    private int isDown;
-
-    private List<PenData> penData; // Array of data being stored. This can
-    // be subsequently used as desired.
-
-//    private Button[] btns; // The array of buttons that we are emulating.
-
-    private JPanel panel;
-
-    private BufferedImage bitmap; // This bitmap that we display on the
-    // screen.
-    private EncodingMode encodingMode; // How we send the bitmap to the
-    // device.
-    private byte[] bitmapData; // This is the flattened data of the bitmap
-    // that we send to the device.
 
     private Point2D.Float tabletToClient(PenData penData) {
         // Client means the panel coordinates.
@@ -293,6 +256,7 @@ public class EstimationQuestionForm extends JDialog implements ITabletHandler {
                 Math.round((float) pt.getX() * this.capability.getScreenWidth() / this.panel.getWidth()),
                 Math.round((float) pt.getY() * this.capability.getScreenHeight() / this.panel.getHeight()));
     }
+    // that we send to the device.
 
     public void dispose() {
         // Ensure that you correctly disconnect from the tablet, otherwise
@@ -332,6 +296,16 @@ public class EstimationQuestionForm extends JDialog implements ITabletHandler {
     @Override
     public void onPenData(PenData penData) {
 
+        Point2D.Float point = DrawingUtils.tabletToScreen(penData, this);
+        for (int i = buttons.size() - 1; i >= 0; i--) {
+            Button button = buttons.get(i);
+            if (button.bounds.contains(Math.round(point.getX()), Math.round(point.getY()))) {
+//                System.out.println(button.text);
+                this.answerButtonListener.ansewrButtonPressed(
+                        new AnswerButtonPressedEvent(this, "Нахата кнопка id = "));
+                break;
+            }
+        }
     }
 
     @Override
@@ -397,5 +371,30 @@ public class EstimationQuestionForm extends JDialog implements ITabletHandler {
     @Override
     public void onEncryptionStatus(EncryptionStatus encryptionStatus) {
 
+    }
+
+    private enum ButtonType {
+        NAV, ANSWERVARIANT;
+    }
+
+    private static class RectangleDimensions {
+        int height = 0;
+        int widht = 0;
+    }
+
+    private class Button {
+        Rectangle bounds; // in Screen coordinates
+        String text;
+        ButtonType buttonType = ButtonType.NAV;
+        String id = "";
+//        ActionListener click = (e -> {
+//            EstimationQuestionForm.this.pressedButtonId = id;
+//            EstimationQuestionForm.this.answerButtonListener
+//                    .ansewrButtonPressed(new AnswerButtonPressedEvent(EstimationQuestionForm.this, "Button pressed id = " + id));
+//        });
+//
+//        void performClick() {
+////            actionPerformed(new AnswerButtonPressedEvent(this, "Нахата кнопка id = " + id));
+//        }
     }
 }

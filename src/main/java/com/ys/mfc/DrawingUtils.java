@@ -161,21 +161,21 @@ public class DrawingUtils {
         }
     }
 
-    private static Point2D.Float tabletToClient(PenData penData, EstimationQuestionForm estimationQuestionForm) {
+    public static Point2D.Float tabletToClient(PenData penData, EstimationQuestionForm estimationQuestionForm) {
         // Client means the panel coordinates.
         return new Point2D.Float(
                 (float) penData.getX() * estimationQuestionForm.getPanel().getWidth() / estimationQuestionForm.getCapability().getTabletMaxX(),
                 (float) penData.getY() * estimationQuestionForm.getPanel().getHeight() / estimationQuestionForm.getCapability().getTabletMaxY());
     }
 
-    private static Point2D.Float tabletToScreen(PenData penData, EstimationQuestionForm estimationQuestionForm) {
+    public static Point2D.Float tabletToScreen(PenData penData, EstimationQuestionForm estimationQuestionForm) {
         // Screen means LCD screen of the tablet.
         return new Point2D.Float(
                 (float) penData.getX() * estimationQuestionForm.getCapability().getScreenWidth() / estimationQuestionForm.getCapability().getTabletMaxX(),
                 (float) penData.getY() * estimationQuestionForm.getCapability().getScreenHeight() / estimationQuestionForm.getCapability().getTabletMaxY());
     }
 
-    private static Point clientToScreen(Point pt, EstimationQuestionForm estimationQuestionForm) {
+    public static Point clientToScreen(Point pt, EstimationQuestionForm estimationQuestionForm) {
         // client (window) coordinates to LCD screen coordinates.
         // This is needed for converting mouse coordinates into LCD bitmap
         // coordinates as that's
