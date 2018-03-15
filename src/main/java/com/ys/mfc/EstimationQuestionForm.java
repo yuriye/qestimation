@@ -30,6 +30,12 @@ public class EstimationQuestionForm extends JDialog implements ITabletHandler {
 
     private int headerHeight = 0;
 
+    private AnsewrButtonPressedListener answerButtonListener;
+
+    public void setAnswerButtonListener(AnsewrButtonPressedListener answerButtonListener) {
+        this.answerButtonListener = answerButtonListener;
+    }
+
     List<Button> buttons = new ArrayList<>();
 
     private int pad = 4;
@@ -203,12 +209,8 @@ public class EstimationQuestionForm extends JDialog implements ITabletHandler {
 
         // Enable the pen data on the screen (if not already)
         this.tablet.setInkingMode(InkingMode.Off);
-
-
         this.tablet.writeImage(this.encodingMode, this.bitmapData);
-        Thread.sleep(100000);
-
-
+        Thread.sleep(50000);
     }
 
     private enum ButtonType {
@@ -225,7 +227,11 @@ public class EstimationQuestionForm extends JDialog implements ITabletHandler {
             click.actionPerformed(null);
         }
 
-        ActionListener click = (e -> EstimationQuestionForm.this.pressedButtonId = id);
+        ActionListener click = (e -> {
+            EstimationQuestionForm.this.pressedButtonId = id;
+            EstimationQuestionForm.this.answerButtonListener
+                    .ansewrButtonPressed(new AnswerButtonPressedEvent(EstimationQuestionForm.this, "Button pressed id = " + id));
+        });
     }
 
     private static class RectangleDimensions {

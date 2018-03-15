@@ -49,6 +49,8 @@ public class Main {
                                 indicatorDescription,
                                 answerVariants);
 
+
+                estimationQuestionForm.setAnswerButtonListener(e -> System.out.println("Нажата кнопка ответа"));
                 estimationQuestionForm.setVisible(true);
                 estimationQuestionForm.dispose();
 
