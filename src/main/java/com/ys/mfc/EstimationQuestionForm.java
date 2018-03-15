@@ -26,6 +26,8 @@ public class EstimationQuestionForm extends JDialog implements ITabletHandler {
     private Capability capability;
     private Information information;
 
+    private String pressedButtonId;
+
     private int headerHeight = 0;
 
     List<Button> buttons = new ArrayList<>();
@@ -140,13 +142,11 @@ public class EstimationQuestionForm extends JDialog implements ITabletHandler {
             gfx.fillRect(0, 0, bitmap.getWidth(), bitmap.getHeight());
 
             double fontSize = (this.buttons.get(0).bounds.getHeight() / 3); // pixels
-//            double fontSize = (this.buttons.get(0).bounds.getWidth() / 45.00); // pixels
-
 
             // Draw question
             gfx.setColor(Color.BLACK);
             gfx.setFont(new Font("Courier New", Font.BOLD, (int) fontSize));
-            DrawingUtils.drawArrangedString(gfx, indicatorDescription,
+            DrawingUtils.drawLongStringBySpliting(gfx, indicatorDescription,
                     (int) 0, 0,
                     (int) this.capability.getScreenWidth(),
                     (int) this.headerHeight);
@@ -167,7 +167,7 @@ public class EstimationQuestionForm extends JDialog implements ITabletHandler {
                         (int) btn.bounds.getWidth(),
                         (int) btn.bounds.getHeight());
 //                DrawingUtils.drawCenteredString(gfx, btn.text,
-                DrawingUtils.drawArrangedString(gfx, btn.text,
+                DrawingUtils.drawLongStringBySpliting(gfx, btn.text,
                         (int) btn.bounds.getX(),
                         (int) btn.bounds.getY(),
                         (int) btn.bounds.getWidth(),
@@ -204,6 +204,7 @@ public class EstimationQuestionForm extends JDialog implements ITabletHandler {
         // Enable the pen data on the screen (if not already)
         this.tablet.setInkingMode(InkingMode.Off);
 
+
         this.tablet.writeImage(this.encodingMode, this.bitmapData);
         Thread.sleep(100000);
 
@@ -214,16 +215,17 @@ public class EstimationQuestionForm extends JDialog implements ITabletHandler {
         NAV, ANSWERVARIANT;
     }
 
-    private static class Button {
+    private class Button {
         Rectangle bounds; // in Screen coordinates
         String text;
-        ActionListener click;
         ButtonType buttonType = ButtonType.NAV;
         String id = "";
 
         void performClick() {
             click.actionPerformed(null);
         }
+
+        ActionListener click = (e -> EstimationQuestionForm.this.pressedButtonId = id);
     }
 
     private static class RectangleDimensions {
