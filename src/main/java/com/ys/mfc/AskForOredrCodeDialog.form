@@ -6,7 +6,7 @@
       <xy x="48" y="54" width="485" height="321"/>
     </constraints>
     <properties/>
-    <border type="none"/>
+    <border type="etched" title="Оценка качества оказанной услуги"/>
     <children>
       <tabbedpane id="988aa" binding="tabbedPane">
         <constraints>

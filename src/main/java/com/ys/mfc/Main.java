@@ -50,10 +50,16 @@ public class Main {
                                 answerVariants);
 
 
-                estimationQuestionForm.setAnswerButtonListener(e -> System.out.println("Нажата кнопка ответа"));
+                estimationQuestionForm.setAnswerButtonListener(e -> System.out.println("Нажата кнопка ответа "
+                        + estimationQuestionForm.getPressedButtonId()));
                 estimationQuestionForm.setVisible(true);
-                Thread.sleep(50000);
+                while(estimationQuestionForm.getPressedButtonId() == null) {
+                    Thread.sleep(100);
+                }
+
                 estimationQuestionForm.dispose();
+
+                return;
 
             } else {
                 throw new RuntimeException("No USB tablets attached");

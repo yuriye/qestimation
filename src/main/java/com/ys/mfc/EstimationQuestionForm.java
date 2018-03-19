@@ -26,7 +26,12 @@ public class EstimationQuestionForm extends JDialog implements ITabletHandler {
     private Tablet tablet;
     private Capability capability;
     private Information information;
-    private String pressedButtonId;
+
+    public String getPressedButtonId() {
+        return pressedButtonId;
+    }
+
+    private String pressedButtonId = null;
     private int headerHeight = 0;
     private AnsewrButtonPressedListener answerButtonListener;
     private int pad = 4;
@@ -299,11 +304,19 @@ public class EstimationQuestionForm extends JDialog implements ITabletHandler {
         Point2D.Float point = DrawingUtils.tabletToScreen(penData, this);
         for (int i = buttons.size() - 1; i >= 0; i--) {
             Button button = buttons.get(i);
-            if (button.bounds.contains(Math.round(point.getX()), Math.round(point.getY()))) {
-//                System.out.println(button.text);
-                this.answerButtonListener.ansewrButtonPressed(
-                        new AnswerButtonPressedEvent(this, "Нахата кнопка id = "));
-                break;
+            if(penData.getPressure() > 0) {
+                if (button.bounds.contains(Math.round(point.getX()), Math.round(point.getY()))) {
+                    try {
+                        this.tablet.setClearScreen();
+                    } catch (STUException e) {
+                        e.printStackTrace();
+                    }
+                    tablet.disconnect();
+                    this.pressedButtonId = button.id;
+                    this.answerButtonListener.ansewrButtonPressed(
+                            new AnswerButtonPressedEvent(this, "Нахата кнопка id = "));
+                    break;
+                }
             }
         }
     }
