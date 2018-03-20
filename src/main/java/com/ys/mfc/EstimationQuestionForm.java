@@ -7,16 +7,14 @@ import com.WacomGSS.STU.Tablet;
 import com.WacomGSS.STU.UsbDevice;
 
 import javax.swing.*;
-import javax.xml.bind.SchemaOutputResolver;
 import java.awt.*;
 import java.awt.Rectangle;
-import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EstimationQuestionForm extends JDialog implements ITabletHandler {
+public class EstimationQuestionForm implements ITabletHandler {
     List<AnswerVariant> answerVariants;
     List<Button> buttons = new ArrayList<>();
     private String indicatorQueue;
@@ -33,7 +31,7 @@ public class EstimationQuestionForm extends JDialog implements ITabletHandler {
 
     private String pressedButtonId = null;
     private int headerHeight = 0;
-    private AnsewrButtonPressedListener answerButtonListener;
+    private AnswerButtonPressedListener answerButtonListener;
     private int pad = 4;
     // The isDown flag is used like this:
     // 0 = up
@@ -71,6 +69,7 @@ public class EstimationQuestionForm extends JDialog implements ITabletHandler {
             } else {
                 if (i < 9) {
                     Thread.sleep(500);
+                    Thread.yield();
                     continue;
                 }
                 throw new RuntimeException("Failed to connect to USB tablet, error " + e);
@@ -111,10 +110,10 @@ public class EstimationQuestionForm extends JDialog implements ITabletHandler {
 //                        / 2540);
 
 //        this.panel.setPreferredSize(d);
-        this.setLayout(new BorderLayout());
-        this.setResizable(false);
+//        this.setLayout(new BorderLayout());
+//        this.setResizable(false);
 //        this.add(this.panel);
-        this.pack();
+//        this.pack();
 
         byte encodingFlag = ProtocolHelper.simulateEncodingFlag(
                 this.tablet.getProductId(),
@@ -221,7 +220,7 @@ public class EstimationQuestionForm extends JDialog implements ITabletHandler {
         this.tablet.writeImage(this.encodingMode, this.bitmapData);
     }
 
-    public void setAnswerButtonListener(AnsewrButtonPressedListener answerButtonListener) {
+    public void setAnswerButtonListener(AnswerButtonPressedListener answerButtonListener) {
         this.answerButtonListener = answerButtonListener;
     }
     // be subsequently used as desired.
@@ -277,7 +276,7 @@ public class EstimationQuestionForm extends JDialog implements ITabletHandler {
             this.tablet = null;
         }
 
-        super.dispose();
+//        super.dispose();
     }
 
     public JPanel getPanel() {
@@ -311,10 +310,11 @@ public class EstimationQuestionForm extends JDialog implements ITabletHandler {
                     } catch (STUException e) {
                         e.printStackTrace();
                     }
-                    tablet.disconnect();
                     this.pressedButtonId = button.id;
-                    this.answerButtonListener.ansewrButtonPressed(
-                            new AnswerButtonPressedEvent(this, "Нахата кнопка id = "));
+                    tablet.disconnect();
+
+//                    this.answerButtonListener.ansewrButtonPressed(
+//                            new AnswerButtonPressedEvent(this, "Нахата кнопка id = "));
                     break;
                 }
             }

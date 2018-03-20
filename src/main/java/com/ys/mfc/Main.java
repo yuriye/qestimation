@@ -42,6 +42,7 @@ public class Main {
                 String indicatorId = "9";
                 String indicatorTitle = "Время предоставления государственной услугиВремя предоставления государственной услуги";
                 String indicatorDescription = "Оцените, соответствует ли срок предоставления услуги вашим ожиданиям и заявленному сроку с момента подачи заявления, включая комплект необходимых документов";
+
                 EstimationQuestionForm estimationQuestionForm =
                         new EstimationQuestionForm(usbDevices[0],
                                 indicatorQueue, indicatorId,
@@ -50,13 +51,13 @@ public class Main {
                                 answerVariants);
 
 
-                estimationQuestionForm.setAnswerButtonListener(e -> System.out.println("Нажата кнопка ответа "
-                        + estimationQuestionForm.getPressedButtonId()));
-                estimationQuestionForm.setVisible(true);
+//                estimationQuestionForm.setAnswerButtonListener(e -> System.out.println("Нажата кнопка ответа "
+//                        + estimationQuestionForm.getPressedButtonId()));
+//                estimationQuestionForm.setVisible(true);
                 while(estimationQuestionForm.getPressedButtonId() == null) {
                     Thread.sleep(100);
                 }
-
+                System.out.println(estimationQuestionForm.getPressedButtonId());
                 estimationQuestionForm.dispose();
 
                 return;
