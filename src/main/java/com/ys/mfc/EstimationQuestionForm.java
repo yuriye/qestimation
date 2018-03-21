@@ -5,6 +5,7 @@ import com.WacomGSS.STU.Protocol.*;
 import com.WacomGSS.STU.STUException;
 import com.WacomGSS.STU.Tablet;
 import com.WacomGSS.STU.UsbDevice;
+import com.ys.mfc.util.DrawingUtils;
 
 import java.awt.*;
 import java.awt.Rectangle;
@@ -20,6 +21,11 @@ public class EstimationQuestionForm implements ITabletHandler {
     private String indicatorId;
     private String indicatorTitle;
     private String indicatorDescription;
+
+    public Tablet getTablet() {
+        return tablet;
+    }
+
     private Tablet tablet;
     private Capability capability;
     private Information information;
@@ -201,7 +207,6 @@ public class EstimationQuestionForm implements ITabletHandler {
 
     @Override
     public void onPenData(PenData penData) {
-
         Point2D.Float point = DrawingUtils.tabletToScreen(penData, this);
         for (int i = buttons.size() - 1; i >= 0; i--) {
             Button button = buttons.get(i);

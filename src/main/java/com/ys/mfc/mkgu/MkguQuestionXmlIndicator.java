@@ -1,4 +1,6 @@
-package com.ys.mfc;
+package com.ys.mfc.mkgu;
+
+import com.ys.mfc.mkgu.MkguQuestionXmlQuestions;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package com.ys.mfc;
+package com.ys.mfc.mkgu;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;

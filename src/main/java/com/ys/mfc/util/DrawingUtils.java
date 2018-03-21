@@ -1,6 +1,7 @@
-package com.ys.mfc;
+package com.ys.mfc.util;
 
 import com.WacomGSS.STU.Protocol.PenData;
+import com.ys.mfc.EstimationQuestionForm;
 
 import java.awt.*;
 import java.awt.geom.Point2D;

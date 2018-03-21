@@ -1,4 +1,4 @@
-package com.ys.mfc;
+package com.ys.mfc.mkgu;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import com.ys.mfc.HttpAdapter;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;

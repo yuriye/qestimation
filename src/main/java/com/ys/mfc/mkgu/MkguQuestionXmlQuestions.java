@@ -1,4 +1,4 @@
-package com.ys.mfc;
+package com.ys.mfc.mkgu;
 
 public class MkguQuestionXmlQuestions {
     private String questionValue;

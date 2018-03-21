@@ -12,7 +12,7 @@ import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
 
 import javax.swing.*;
-import java.awt.event.*;
+import java.awt.*;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -21,85 +21,49 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class AskForOredrCodeDialog extends JDialog {
-    private JPanel contentPane;
-    private JButton buttonClose;
-    private JButton buttonNext;
-    private JTabbedPane tabbedPane;
-    private JPanel askForOrderCode;
-    private JPanel log;
-    private JTextField orderCodeTextFieldl;
-    private JButton startButton;
-    private JTextArea logText;
+public class QuestFrame  extends JFrame {
 
-    private String orderCode = "";
+    private String orderCode = "0656051";
     private HttpAdapter adapter = HttpAdapter.getInstance();
     private Map mkguFormVersion;
     private MkguQuestionXmlRoot questions;
 
     private com.WacomGSS.STU.UsbDevice[] usbDevices = UsbDevice.getUsbDevices();
 
+    public QuestFrame() throws HeadlessException {
+        this.setTitle("Оценка качества оказания услуги");
+        this.setLayout(new BorderLayout());
 
-    public AskForOredrCodeDialog() {
-        setContentPane(contentPane);
-        setModal(true);
-        getRootPane().setDefaultButton(buttonClose);
+        JPanel panel = new JPanel();
+        panel.setLayout(new FlowLayout());
 
-        buttonClose.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                onClose();
+        JButton btn = new JButton("Старт");
+        btn.addActionListener(evt -> {
+            try {
+                onStart();
+            } catch (STUException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         });
 
-        buttonNext.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                onCancel();
-            }
-        });
-
-        // call onCancel() when cross is clicked
-        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-        addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent e) {
-                onCancel();
-            }
-        });
-
-        // call onCancel() on ESCAPE
-        contentPane.registerKeyboardAction(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                onCancel();
-            }
-        }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-
-        startButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    onStart();
-                } catch (STUException e1) {
-                    e1.printStackTrace();
-                } catch (InterruptedException e1) {
-                    e1.printStackTrace();
-                }
-            }
-        });
+        panel.add(btn);
+        this.add(panel);
     }
 
     private void onStart() throws STUException, InterruptedException {
-
-        orderCode = orderCodeTextFieldl.getText();
 
         mkguFormVersion = adapter.getMkguFormVersion(orderCode);
         if ("OK".equals(mkguFormVersion.get("status"))) {
             if (usbDevices == null || usbDevices.length <= 0) {
                 throw new RuntimeException("No USB tablets attached");
             }
-            orderCode = orderCodeTextFieldl.getText();
+//            orderCode = orderCodeTextFieldl.getText();
             MkguQuestionXmlRoot questions = getQuestions(mkguFormVersion, orderCode);
             for (MkguQuestionXmlIndicator estimationQuestion : questions.getIndicator()) {
-                List<AnswerVariant> answerVariants = new ArrayList<>();
-                List<MkguQuestionXmlQuestions> stepAnswerVariants = estimationQuestion.getIndicator();
+                java.util.List<AnswerVariant> answerVariants = new ArrayList<>();
+                java.util.List<MkguQuestionXmlQuestions> stepAnswerVariants = estimationQuestion.getIndicator();
 
                 stepAnswerVariants.forEach(variant ->
                         answerVariants.add(new AnswerVariant(
@@ -134,7 +98,7 @@ public class AskForOredrCodeDialog extends JDialog {
 
 
     private static MkguQuestionXmlRoot getQuestions(Map<String, String> mkguFormVersion, String orderNumber) {
-        List<MkguQuestionnaires> mkguQuestionnaires = HttpAdapter.getInstance().getMkguQuestionnaires();
+        java.util.List<MkguQuestionnaires> mkguQuestionnaires = HttpAdapter.getInstance().getMkguQuestionnaires();
         MkguQuestionXmlRoot mkguQuestionXmlRoot = new MkguQuestionXmlRoot();
         mkguQuestionXmlRoot.setOrderNumber(orderNumber);
         String xml = mkguQuestionnaires.stream()
@@ -150,7 +114,7 @@ public class AskForOredrCodeDialog extends JDialog {
         SAXBuilder saxBuilder = new SAXBuilder();
         try {
             Document doc = saxBuilder.build(new StringReader(xml));
-            List<MkguQuestionXmlIndicator> mkguQuestionXmlIndicators = new ArrayList<>();
+            java.util.List<MkguQuestionXmlIndicator> mkguQuestionXmlIndicators = new ArrayList<>();
             Element rootElement = doc.getRootElement();
             Element blocks = (Element) rootElement.getChildren("blocks").get(0);
             mkguQuestionXmlRoot.setQuestionTitle(((Element) blocks.getChildren().get(0)).getValue());
@@ -162,7 +126,7 @@ public class AskForOredrCodeDialog extends JDialog {
                 mkguQuestionXmlIndicator.setIndicatorId(element.getAttribute("id").getValue());
                 mkguQuestionXmlIndicator.setQuestionTitle(element.getChild("title").getValue());
                 mkguQuestionXmlIndicator.setDescriptionTitle(element.getChild("description").getValue());
-                List<Element> values = element.getChild("values").getChildren();
+                java.util.List<Element> values = element.getChild("values").getChildren();
                 List<MkguQuestionXmlQuestions> mkguQuestionXmlList = new ArrayList<>();
 
                 values.forEach(element1 -> mkguQuestionXmlList.add(
@@ -186,20 +150,13 @@ public class AskForOredrCodeDialog extends JDialog {
         return new MkguQuestionXmlRoot();
     }
 
-    private void onClose() {
-        // add your code here
-        dispose();
-    }
-
-    private void onCancel() {
-        // add your code here if necessary
-        dispose();
+    private static void runProgram() {
+        QuestFrame questFrame = new QuestFrame();
+        questFrame.pack();
+        questFrame.setVisible(true);
     }
 
     public static void main(String[] args) {
-        AskForOredrCodeDialog dialog = new AskForOredrCodeDialog();
-        dialog.pack();
-        dialog.setVisible(true);
-        System.exit(0);
+        EventQueue.invokeLater(() -> runProgram());
     }
 }
