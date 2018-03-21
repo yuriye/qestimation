@@ -1,5 +1,7 @@
 package com.ys.mfc;
 
+import com.WacomGSS.STU.ITabletHandler;
+import com.WacomGSS.STU.Protocol.*;
 import com.WacomGSS.STU.STUException;
 import com.WacomGSS.STU.UsbDevice;
 import com.ys.mfc.mkgu.MkguQuestionXmlIndicator;
@@ -21,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class AskForOredrCodeDialog extends JDialog {
+public class AskForOredrCodeDialog extends JDialog implements ITabletHandler {
     private JPanel contentPane;
     private JButton buttonClose;
     private JButton buttonNext;
@@ -36,8 +38,9 @@ public class AskForOredrCodeDialog extends JDialog {
     private HttpAdapter adapter = HttpAdapter.getInstance();
     private Map mkguFormVersion;
     private MkguQuestionXmlRoot questions;
-
     private com.WacomGSS.STU.UsbDevice[] usbDevices = UsbDevice.getUsbDevices();
+
+//    private com.WacomGSS.STU.UsbDevice[] usbDevices = UsbDevice.getUsbDevices();
 
 
     public AskForOredrCodeDialog() {
@@ -88,6 +91,7 @@ public class AskForOredrCodeDialog extends JDialog {
 
     private void onStart() throws STUException, InterruptedException {
 
+
         orderCode = orderCodeTextFieldl.getText();
 
         mkguFormVersion = adapter.getMkguFormVersion(orderCode);
@@ -108,24 +112,23 @@ public class AskForOredrCodeDialog extends JDialog {
                                 variant.getAltTitle()))
                 );
 
-                EstimationQuestionForm estimationQuestionForm = new EstimationQuestionForm(usbDevices[0],
+                EstimationQuestionForm estimationQuestionForm = new EstimationQuestionForm(
+                        usbDevices[0],
                         estimationQuestion.getIndicatorId(),
                         estimationQuestion.getIndicatorId(),
                         estimationQuestion.getQuestionTitle(),
                         estimationQuestion.getDescriptionTitle(),
                         answerVariants);
+                estimationQuestionForm.waitForButtonPress();
+                estimationQuestionForm.getTablet().addTabletHandler(this);
 
-                estimationQuestionForm.setAnswerButtonListener(evt ->
-                        System.out.println(estimationQuestionForm.getPressedButtonId()));
-
-//                estimationQuestionForm.setAnswerButtonListener(e -> System.out.println("Нажата кнопка ответа "
-//                        + estimationQuestionForm.getPressedButtonId()));
-//                estimationQuestionForm.setVisible(true);
-                while (estimationQuestionForm.getPressedButtonId() == null) {
-                    Thread.sleep(100);
-                    Thread.yield();
-                }
+//                Thread.sleep(10000);
+//                while (estimationQuestionForm.getPressedButtonId() == null) {
+//                    Thread.sleep(100);
+//                    Thread.yield();
+//                }
                 System.out.println(estimationQuestionForm.getPressedButtonId());
+                if (estimationQuestionForm.getTablet().isConnected()) estimationQuestionForm.getTablet().disconnect();
             }
         } else {
             throw new RuntimeException("No USB tablets attached");
@@ -201,5 +204,86 @@ public class AskForOredrCodeDialog extends JDialog {
         dialog.pack();
         dialog.setVisible(true);
         System.exit(0);
+    }
+
+    @Override
+    public void onGetReportException(STUException e) {
+
+    }
+
+    @Override
+    public void onUnhandledReportData(byte[] bytes) {
+
+    }
+
+    @Override
+    public void onPenData(PenData penData) {
+        System.out.println("a;dlsgf");
+
+    }
+
+    @Override
+    public void onPenDataOption(PenDataOption penDataOption) {
+
+    }
+
+    @Override
+    public void onPenDataEncrypted(PenDataEncrypted penDataEncrypted) {
+
+    }
+
+    @Override
+    public void onPenDataEncryptedOption(PenDataEncryptedOption penDataEncryptedOption) {
+
+    }
+
+    @Override
+    public void onPenDataTimeCountSequence(PenDataTimeCountSequence penDataTimeCountSequence) {
+
+    }
+
+    @Override
+    public void onPenDataTimeCountSequenceEncrypted(PenDataTimeCountSequenceEncrypted penDataTimeCountSequenceEncrypted) {
+
+    }
+
+    @Override
+    public void onEventDataPinPad(EventDataPinPad eventDataPinPad) {
+
+    }
+
+    @Override
+    public void onEventDataKeyPad(EventDataKeyPad eventDataKeyPad) {
+
+    }
+
+    @Override
+    public void onEventDataSignature(EventDataSignature eventDataSignature) {
+
+    }
+
+    @Override
+    public void onEventDataPinPadEncrypted(EventDataPinPadEncrypted eventDataPinPadEncrypted) {
+
+    }
+
+    @Override
+    public void onEventDataKeyPadEncrypted(EventDataKeyPadEncrypted eventDataKeyPadEncrypted) {
+
+    }
+
+    @Override
+    public void onEventDataSignatureEncrypted(EventDataSignatureEncrypted eventDataSignatureEncrypted) {
+
+    }
+
+    @Override
+    public void onDevicePublicKey(DevicePublicKey devicePublicKey) {
+
+    }
+
+    @Override
+    public void onEncryptionStatus(EncryptionStatus encryptionStatus) {
+
     }
 }

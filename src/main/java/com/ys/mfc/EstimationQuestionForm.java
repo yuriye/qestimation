@@ -135,7 +135,8 @@ public class EstimationQuestionForm implements ITabletHandler {
             DrawingUtils.drawLongStringBySpliting(gfx, indicatorDescription,
                     (int) 0, 0,
                     (int) this.capability.getScreenWidth(),
-                    (int) this.headerHeight);
+                    (int) this.headerHeight,
+                    false);
             // Draw the buttons
             boolean useColour = useColor; //effective final for lambda
             gfx.setFont(new Font("Courier New", Font.BOLD, (int) fontSize));
@@ -156,7 +157,8 @@ public class EstimationQuestionForm implements ITabletHandler {
                         (int) btn.bounds.getX(),
                         (int) btn.bounds.getY(),
                         (int) btn.bounds.getWidth(),
-                        (int) btn.bounds.getHeight());
+                        (int) btn.bounds.getHeight(),
+                        true);
             });
             gfx.dispose();
         }
@@ -171,6 +173,13 @@ public class EstimationQuestionForm implements ITabletHandler {
         // Enable the pen data on the screen (if not already)
         this.tablet.setInkingMode(InkingMode.Off);
         this.tablet.writeImage(this.encodingMode, this.bitmapData);
+    }
+
+    public void waitForButtonPress() throws InterruptedException {
+        while (this.getPressedButtonId() == null) {
+            Thread.sleep(100);
+            Thread.yield();
+        }
     }
 
     public void setAnswerButtonListener(AnswerButtonPressedListener answerButtonListener) {
@@ -210,7 +219,7 @@ public class EstimationQuestionForm implements ITabletHandler {
         Point2D.Float point = DrawingUtils.tabletToScreen(penData, this);
         for (int i = buttons.size() - 1; i >= 0; i--) {
             Button button = buttons.get(i);
-            if(penData.getPressure() > 0) {
+            if (penData.getPressure() > 0) {
                 if (button.bounds.contains(Math.round(point.getX()), Math.round(point.getY()))) {
                     try {
                         this.tablet.setClearScreen();

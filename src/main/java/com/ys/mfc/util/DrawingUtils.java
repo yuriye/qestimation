@@ -5,6 +5,7 @@ import com.ys.mfc.EstimationQuestionForm;
 
 import java.awt.*;
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
 
 public class DrawingUtils {
 
@@ -21,37 +22,44 @@ public class DrawingUtils {
     }
 
     static public void drawLongStringBySpliting(Graphics2D gfx, String text, int x,
-                                                int y, int width, int height) {
+                                                int y, int width, int height, Boolean verticalCentered) {
         FontMetrics fm = gfx.getFontMetrics(gfx.getFont());
         int textHeight = fm.getHeight();
         int textWidth = fm.stringWidth(text);
-        String head = "";
-        String tail = "";
-        int headWidth = textWidth;
-        a:
-        if (textWidth > width) {
-            int endOfHeadPos = text.length();
 
-            while (headWidth >= width) {
-                endOfHeadPos = text.lastIndexOf(" ", endOfHeadPos - 1);
-                if (endOfHeadPos == -1) break a;
-                head = text.substring(0, endOfHeadPos);
-                headWidth = fm.stringWidth(head);
-            }
-            tail = text.substring(endOfHeadPos + 1);
-        }
-        int textX;
+        java.util.List<String> textParts = new ArrayList<>();
+
+        int textX = 8;
         int textY;
-        if ("".equals(tail)) {
-            textX = x + (width - textWidth) / 2;
+        int lineSpacing = 4;
+
+        if (textWidth > width) {
+            String[] headTail;
+            String head = text;
+            do {
+                headTail = getHeadTail(head, width, fm);
+                if (!"".equals(headTail[0])) {
+                    textParts.add(headTail[0]);
+                    head = headTail[1];
+                }
+            }
+            while (!"".equals(headTail[1]));
+            if (textParts.size() > 0) {
+                if (verticalCentered) {
+                    textY = y + (height - (textHeight + lineSpacing) * textParts.size() - lineSpacing) / 2 + fm.getAscent();
+                }
+                else {
+                    textY = 13;
+                }
+
+                for (int i = 0; i < textParts.size(); i++) {
+                    gfx.drawString(textParts.get(i), textX, textY + i * textHeight + lineSpacing);
+                }
+            }
+        } else {
+//        textX = x + (width - textWidth) / 2;
             textY = y + (height - textHeight) / 2 + fm.getAscent();
             gfx.drawString(text, textX, textY);
-        } else {
-            textX = 8;
-            textY = y + (height / 2 - textHeight) / 2 + fm.getAscent();
-            gfx.drawString(head, textX, textY);
-            textY = textY + height / 2;
-            gfx.drawString(tail, textX, textY);
         }
     }
 
