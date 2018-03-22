@@ -35,7 +35,7 @@ public class EstimationQuestionForm implements ITabletHandler {
     }
 
     private String pressedButtonId = null;
-    private int headerHeight = 0;
+    private int headerHeight;
     private AnswerButtonPressedListener answerButtonListener;
     private int pad = 4;
 
@@ -260,6 +260,14 @@ public class EstimationQuestionForm implements ITabletHandler {
 //        void performClick() {
 ////            actionPerformed(new AnswerButtonPressedEvent(this, "Нахата кнопка id = " + id));
 //        }
+    }
+
+    public EncodingMode getEncodingMode() {
+        return encodingMode;
+    }
+
+    public byte[] getBitmapData() {
+        return bitmapData;
     }
 
     @Override
