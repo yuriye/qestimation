@@ -30,7 +30,7 @@ public class BuyImage {
             // Draw question
             gfx.setColor(Color.BLACK);
             gfx.setFont(new Font("Courier New", Font.BOLD, (int) fontSize));
-            DrawingUtils.drawLongStringBySpliting(gfx, "Спасибо за участие в оценке качества оказания услуг!",
+            DrawingUtils.drawLongStringBySpliting(gfx, "Спасибо! Ваша оценка успешно сохранена.",
                     (int) 0, 0,
                     (int) this.capability.getScreenWidth(),
                     (int) this.capability.getScreenHeight(),

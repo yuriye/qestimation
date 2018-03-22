@@ -120,4 +120,14 @@ public class HttpAdapter {
         return 0;
     }
 
+    public void printPostXml(String version, String orderNumber, String answers) {
+        TimeZone tz = TimeZone.getTimeZone("UTC");
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX");
+        df.setTimeZone(tz);
+        String nowAsISO = df.format(new Date());
+
+        System.out.println("<body><form-version>" + version + "</form-version>" + "<orderNumber>" + orderNumber + "</orderNumber>" + "<authorityId>" + "123" + "</authorityId>" + "<receivedDate>" + nowAsISO + "</receivedDate>" + "<okato>" + "50401000000" + "</okato>" + "<rates>" + answers + "</rates>" + "</body>");
+
+    }
+
 }

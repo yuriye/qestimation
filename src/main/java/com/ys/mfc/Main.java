@@ -11,10 +11,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.WacomGSS.STU.Protocol.EncodingMode;
 import com.WacomGSS.STU.Protocol.InkingMode;
 import com.WacomGSS.STU.Protocol.PenData;
 import com.WacomGSS.STU.Protocol.ProtocolHelper;
 import com.WacomGSS.STU.STUException;
+import com.WacomGSS.STU.Tablet;
 import com.WacomGSS.STU.UsbDevice;
 import com.ys.mfc.mkgu.MkguQuestionXmlIndicator;
 import com.ys.mfc.mkgu.MkguQuestionXmlQuestions;
@@ -37,11 +39,19 @@ public class Main extends JFrame {
 
     static HttpAdapter adapter = HttpAdapter.getInstance();
     private static Map mkguFormVersion;
+    private static String formVersion;
 
     private String informString;
     private JLabel informStringLabel = new JLabel();
     private JPanel panel = new JPanel();
     private BufferedImage buyImage;
+    private List<String[]> rates = new ArrayList<>();
+    private String postXml;
+    private String orderCode;
+    private String okato = "50401000000";
+    private String authorityId = "123";
+    private static String version;
+
 
     public Main() {
         this.setTitle("Оценка качеcтва оказания услуг");
@@ -65,6 +75,7 @@ public class Main extends JFrame {
 
                 mkguFormVersion = adapter.getMkguFormVersion(orderCode);
                 MkguQuestionXmlRoot questions = getQuestions(mkguFormVersion, orderCode);
+                System.out.println(questions.getVersion());
                 mainFrame.setVisible(true);
                 EstimationQuestionForm estimationQuestionForm = null;
                 for (MkguQuestionXmlIndicator estimationQuestion : questions.getIndicator()) {
@@ -89,10 +100,20 @@ public class Main extends JFrame {
                         Thread.sleep(100);
                     }
                     mainFrame.informStringLabel.setText("Ответ = " + estimationQuestionForm.getPressedButtonId());
-                    System.out.println(estimationQuestionForm.getPressedButtonId());
+                    System.out.println("IndicatorId = " + estimationQuestion.getIndicatorId()
+                            + " rate=" + estimationQuestionForm.getPressedButtonId());
+                    mainFrame.rates.add(new String[]{estimationQuestion.getIndicatorId(),
+                            estimationQuestionForm.getPressedButtonId()});
                     estimationQuestionForm.dispose();
                 }
+
+//                adapter.printPostXml(version, orderCode, mainFrame.getRatesString(mainFrame.rates));
+                int status = adapter.postQuestions(version, orderCode, mainFrame.getRatesString(mainFrame.rates));
+                System.out.println("status=" + status);
+
                 mainFrame.informStringLabel.setText("Оценка завершена");
+
+
                 if (estimationQuestionForm != null) {
                     BufferedImage buyImage = new BuyImage(estimationQuestionForm.getCapability()).getBitmap();
                     byte[] bitmapData = ProtocolHelper.flatten(buyImage,
@@ -100,12 +121,18 @@ public class Main extends JFrame {
                             true);
 
                     // Add the delagate that receives pen data.
-                    estimationQuestionForm.getTablet().addTabletHandler(estimationQuestionForm);
+                    Tablet tablet = new Tablet();
+                    tablet.usbConnect(usbDevices[0], true);
+                    tablet.addTabletHandler(estimationQuestionForm);
 
                     // Enable the pen data on the screen (if not already)
-                    estimationQuestionForm.getTablet().setInkingMode(InkingMode.Off);
-                    estimationQuestionForm.getTablet().writeImage(estimationQuestionForm.getEncodingMode(),
-                            estimationQuestionForm.getBitmapData());
+                    tablet.setInkingMode(InkingMode.Off);
+                    tablet.writeImage(EncodingMode.EncodingMode_16bit_Bulk, bitmapData);
+
+
+                    Thread.sleep(10000);
+                    tablet.setClearScreen();
+                    tablet.disconnect();
                 }
 
 
@@ -123,10 +150,26 @@ public class Main extends JFrame {
         }
     }
 
+    private String getRatesString(List<String[]> rates) {
+
+        StringBuilder stringBuilder = new StringBuilder();
+        rates.forEach(rate -> {
+            stringBuilder.append("<rate indicator-id=\"");
+            stringBuilder.append(rate[0]);
+            stringBuilder.append("\" value-id=\"");
+            stringBuilder.append(rate[1]);
+            stringBuilder.append("\">");
+            stringBuilder.append(rate[1]);
+            stringBuilder.append("</rate>");
+        });
+        return stringBuilder.toString();
+    }
+
     private static MkguQuestionXmlRoot getQuestions(Map<String, String> mkguFormVersion, String orderNumber) {
         List<MkguQuestionnaires> mkguQuestionnaires = HttpAdapter.getInstance().getMkguQuestionnaires();
         MkguQuestionXmlRoot mkguQuestionXmlRoot = new MkguQuestionXmlRoot();
         mkguQuestionXmlRoot.setOrderNumber(orderNumber);
+        version = mkguFormVersion.get("version");
         String xml = mkguQuestionnaires.stream()
                 .filter(element -> element.getVersion().equals(mkguFormVersion.get("version")))
                 .collect(Collectors.toList())
@@ -135,7 +178,6 @@ public class Main extends JFrame {
 
         xml = xml.replaceAll("\\n", "");
         xml = xml.replaceAll("\\\\", "");
-        System.out.println(xml);
 
         SAXBuilder saxBuilder = new SAXBuilder();
         try {
