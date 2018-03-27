@@ -49,6 +49,7 @@ public class Main extends JFrame {
     private String postXml;
     private String orderCode;
     private String okato = "50401000000";
+//    private String okato = "30000000000";
     private String authorityId = "123";
     private static String version;
 
@@ -74,8 +75,21 @@ public class Main extends JFrame {
             if (usbDevices != null && usbDevices.length > 0) {
 
                 mkguFormVersion = adapter.getMkguFormVersion(orderCode);
-                MkguQuestionXmlRoot questions = getQuestions(mkguFormVersion, orderCode);
-                System.out.println(questions.getVersion());
+                if (("ALREADY_FILLED".equals(mkguFormVersion.get("status"))) ) {
+                    JOptionPane.showMessageDialog(null, "Оценка заявления с кодом " + orderCode + " уже была произведена.");
+                    System.exit(0);
+                }
+                else if (!"OK".equals(mkguFormVersion.get("status"))) {
+                    JOptionPane.showMessageDialog(null, "Заявление с кодом " + orderCode + " не найдено");
+                    System.exit(0);
+                }
+                MkguQuestionXmlRoot questions = null;
+                try {
+                    questions = getQuestions(mkguFormVersion, orderCode);
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(null, "Не найдено заявление с кодом: " + orderCode);
+                    System.exit(0);
+                }
                 mainFrame.setVisible(true);
                 EstimationQuestionForm estimationQuestionForm = null;
                 for (MkguQuestionXmlIndicator estimationQuestion : questions.getIndicator()) {
@@ -100,18 +114,14 @@ public class Main extends JFrame {
                         Thread.sleep(100);
                     }
                     mainFrame.informStringLabel.setText("Ответ = " + estimationQuestionForm.getPressedButtonId());
-                    System.out.println("IndicatorId = " + estimationQuestion.getIndicatorId()
-                            + " rate=" + estimationQuestionForm.getPressedButtonId());
                     mainFrame.rates.add(new String[]{estimationQuestion.getIndicatorId(),
                             estimationQuestionForm.getPressedButtonId()});
                     estimationQuestionForm.dispose();
                 }
 
-//                adapter.printPostXml(version, orderCode, mainFrame.getRatesString(mainFrame.rates));
                 int status = adapter.postQuestions(version, orderCode, mainFrame.getRatesString(mainFrame.rates));
-                System.out.println("status=" + status);
 
-                mainFrame.informStringLabel.setText("Оценка завершена");
+                mainFrame.informStringLabel.setText("Оценка завершена. Статус = " + status);
 
 
                 if (estimationQuestionForm != null) {
@@ -142,10 +152,13 @@ public class Main extends JFrame {
                 throw new RuntimeException("No USB tablets attached");
             }
         } catch (STUException e) {
+//            JOptionPane.showMessageDialog(null, e.toString());
             e.printStackTrace();
         } catch (RuntimeException e) {
+//            JOptionPane.showMessageDialog(null, e.toString());
             e.printStackTrace();
         } catch (InterruptedException e) {
+//            JOptionPane.showMessageDialog(null, e.toString());
             e.printStackTrace();
         }
     }

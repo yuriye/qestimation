@@ -64,9 +64,8 @@ public class EstimationQuestionForm implements ITabletHandler {
                 this.information = tablet.getInformation();
                 break;
             } else {
-                if (i < 9) {
+                if (i < 20) {
                     Thread.sleep(500);
-                    Thread.yield();
                     continue;
                 }
                 throw new RuntimeException("Failed to connect to USB tablet, error " + e);
