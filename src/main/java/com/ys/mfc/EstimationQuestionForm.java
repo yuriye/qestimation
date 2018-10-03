@@ -57,20 +57,21 @@ public class EstimationQuestionForm implements ITabletHandler {
         this.answerVariants = answerVariants;
 
         this.tablet = new Tablet();
+        int e = -1;
         for (int i = 0; i < 10; i++) {
-            int e = tablet.usbConnect(usbDevice, true);
+            e = tablet.usbConnect(usbDevice, true);
             if (e == 0) {
-                this.capability = tablet.getCapability();
-                this.information = tablet.getInformation();
                 break;
             } else {
-                if (i < 20) {
-                    Thread.sleep(500);
-                    continue;
-                }
-                throw new RuntimeException("Failed to connect to USB tablet, error " + e);
+                Thread.sleep(1000);
             }
         }
+        if (e != 0) {
+            throw new RuntimeException("Failed to connect to USB tablet, error " + e);
+        }
+
+        this.capability = tablet.getCapability();
+        this.information = tablet.getInformation();
 
         this.headerHeight = this.capability.getScreenHeight() / 4;
         int offset = this.headerHeight;

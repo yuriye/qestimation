@@ -1,10 +1,14 @@
 package com.ys.mfc;
 
+//http://java-online.ru/swing-windows.xhtml
+//frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.io.StringReader;
+import java.io.*;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -54,7 +58,23 @@ public class Main extends JFrame {
     private static String version;
 
 
-    public Main() {
+    public Main() throws IOException {
+
+        try {
+            System.loadLibrary("wgssSTU");
+        } catch (UnsatisfiedLinkError e) {
+            String name = "wgssSTU.dll";
+            Path path = FileSystems.getDefault().getPath(".", name);
+
+            try (InputStream input = Main.class.getResourceAsStream("/"+name)) {
+                if (input == null) {
+                    throw new FileNotFoundException("Не найден ресурс wgssSTU.dll");
+                }
+                Files.copy(input, path);
+                System.loadLibrary("wgssSTU");
+            }
+        }
+
         this.setTitle("Оценка качеcтва оказания услуг");
         informStringLabel.setText("Начинаем...");
         this.panel.setPreferredSize(new Dimension(400, 200));
@@ -65,7 +85,7 @@ public class Main extends JFrame {
 
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
         Main mainFrame = new Main();
         String orderCode = JOptionPane.showInputDialog("Введите код заявления");
@@ -152,13 +172,13 @@ public class Main extends JFrame {
                 throw new RuntimeException("No USB tablets attached");
             }
         } catch (STUException e) {
-//            JOptionPane.showMessageDialog(null, e.toString());
+            JOptionPane.showMessageDialog(null, e.toString());
             e.printStackTrace();
         } catch (RuntimeException e) {
-//            JOptionPane.showMessageDialog(null, e.toString());
+            JOptionPane.showMessageDialog(null, e.toString());
             e.printStackTrace();
         } catch (InterruptedException e) {
-//            JOptionPane.showMessageDialog(null, e.toString());
+            JOptionPane.showMessageDialog(null, e.toString());
             e.printStackTrace();
         }
     }
