@@ -2,22 +2,10 @@ package com.ys.mfc;
 
 //http://java-online.ru/swing-windows.xhtml
 //frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.*;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+//код для тестирования 0789873
 
 import com.WacomGSS.STU.Protocol.EncodingMode;
 import com.WacomGSS.STU.Protocol.InkingMode;
-import com.WacomGSS.STU.Protocol.PenData;
 import com.WacomGSS.STU.Protocol.ProtocolHelper;
 import com.WacomGSS.STU.STUException;
 import com.WacomGSS.STU.Tablet;
@@ -34,8 +22,25 @@ import org.jdom2.input.SAXBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
+import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.image.BufferedImage;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 
 public class Main extends JFrame {
@@ -53,62 +58,115 @@ public class Main extends JFrame {
     private String postXml;
     private String orderCode;
     private String okato = "50401000000";
-//    private String okato = "30000000000";
+    //    private String okato = "30000000000";
     private String authorityId = "123";
     private static String version;
 
 
-    public Main() throws IOException {
-
+    public Main(String orderCode) {
+        this.orderCode = orderCode;
         try {
             System.loadLibrary("wgssSTU");
         } catch (UnsatisfiedLinkError e) {
             String name = "wgssSTU.dll";
             Path path = FileSystems.getDefault().getPath(".", name);
 
-            try (InputStream input = Main.class.getResourceAsStream("/"+name)) {
+            try (InputStream input = Main.class.getResourceAsStream("/" + name)) {
                 if (input == null) {
                     throw new FileNotFoundException("Не найден ресурс wgssSTU.dll");
                 }
                 Files.copy(input, path);
                 System.loadLibrary("wgssSTU");
+            } catch (IOException e1) {
+                e1.printStackTrace();
             }
         }
 
         this.setTitle("Оценка качеcтва оказания услуг");
         informStringLabel.setText("Начинаем...");
         this.panel.setPreferredSize(new Dimension(400, 200));
+        this.setBounds(100,100, 400, 200);
         this.panel.add(informStringLabel);
         this.add(this.panel, BorderLayout.NORTH);
         this.pack();
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
+        this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     }
 
     public static void main(String[] args) throws IOException {
+//        runQuest(orderCode);
+        String orderCode = "";
+//        JFrame.setDefaultLookAndFeelDecorated(true);
 
-        Main mainFrame = new Main();
-        String orderCode = JOptionPane.showInputDialog("Введите код заявления");
+        JFrame codeFrame = new JFrame();
+//        codeFrame.getRootPane().setWindowDecorationStyle(JRootPane.PLAIN_DIALOG);
+
+        codeFrame.setTitle("Код заявления:");
+        codeFrame.setBounds(10, 10, 200, 60);
+        codeFrame.setAlwaysOnTop(true);
+        codeFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        codeFrame.setResizable(false);
+
+        //Поле, чтобы фокус при открытии ловить в него
+        JTextField zeroField = new JTextField();
+        zeroField.setMaximumSize(new Dimension(1, 1));
+        codeFrame.getContentPane().add(zeroField);
+
+        //Трэш для обхода непонятного исключения
+        try {
+            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+            DataFlavor[] dataFlavors = clipboard.getAvailableDataFlavors();
+        } catch (Exception ex) {
+        }
+
+        JTextField codeField = new JTextField();
+        codeField.setHorizontalAlignment(0);
+
+        codeField.setHorizontalAlignment(0);
+        codeField.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                codeField.setText("");
+                codeField.update(codeField.getGraphics());
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                codeField.setText("");
+            }
+        });
+
+        codeField.addActionListener(e -> runQuest(codeField.getText()));
+
+        codeFrame.getContentPane().add(codeField);
+        codeFrame.setVisible(true);
+    }
+
+    public static void runQuest(String orderCode) {
+
+        Main mainFrame = new Main(orderCode);
+//        String orderCode = JOptionPane.showInputDialog("Введите код заявления");
 
         try {
             com.WacomGSS.STU.UsbDevice[] usbDevices = UsbDevice.getUsbDevices();
             if (usbDevices != null && usbDevices.length > 0) {
 
                 mkguFormVersion = adapter.getMkguFormVersion(orderCode);
-                if (("ALREADY_FILLED".equals(mkguFormVersion.get("status"))) ) {
+                if (("ALREADY_FILLED".equals(mkguFormVersion.get("status")))) {
                     JOptionPane.showMessageDialog(null, "Оценка заявления с кодом " + orderCode + " уже была произведена.");
-                    System.exit(0);
-                }
-                else if (!"OK".equals(mkguFormVersion.get("status"))) {
+//                    System.exit(0);
+                    return;
+                } else if (!"OK".equals(mkguFormVersion.get("status"))) {
                     JOptionPane.showMessageDialog(null, "Заявление с кодом " + orderCode + " не найдено");
-                    System.exit(0);
+//                    System.exit(0);
+                    return;
                 }
                 MkguQuestionXmlRoot questions = null;
                 try {
                     questions = getQuestions(mkguFormVersion, orderCode);
-                } catch (Exception e) {
+                } catch (java.lang.Exception e) {
                     JOptionPane.showMessageDialog(null, "Не найдено заявление с кодом: " + orderCode);
-                    System.exit(0);
+//                    System.exit(0);
+                    return;
                 }
                 mainFrame.setVisible(true);
                 EstimationQuestionForm estimationQuestionForm = null;
@@ -182,6 +240,7 @@ public class Main extends JFrame {
             e.printStackTrace();
         }
     }
+
 
     private String getRatesString(List<String[]> rates) {
 
