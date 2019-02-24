@@ -1,23 +1,9 @@
 package com.ys.mfc;
 
-//http://java-online.ru/swing-windows.xhtml
-//frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.*;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+//код для тестирования 0789873
 
 import com.WacomGSS.STU.Protocol.EncodingMode;
 import com.WacomGSS.STU.Protocol.InkingMode;
-import com.WacomGSS.STU.Protocol.PenData;
 import com.WacomGSS.STU.Protocol.ProtocolHelper;
 import com.WacomGSS.STU.STUException;
 import com.WacomGSS.STU.Tablet;
@@ -34,8 +20,22 @@ import org.jdom2.input.SAXBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
+import java.nio.file.CopyOption;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 
 public class Main extends JFrame {
@@ -53,135 +53,123 @@ public class Main extends JFrame {
     private String postXml;
     private String orderCode;
     private String okato = "50401000000";
-//    private String okato = "30000000000";
     private String authorityId = "123";
     private static String version;
 
 
     public Main() throws IOException {
-
         try {
             System.loadLibrary("wgssSTU");
-        } catch (UnsatisfiedLinkError e) {
+        } catch (UnsatisfiedLinkError var17) {
             String name = "wgssSTU.dll";
             Path path = FileSystems.getDefault().getPath(".", name);
 
-            try (InputStream input = Main.class.getResourceAsStream("/"+name)) {
+            try (InputStream input = Main.class.getResourceAsStream("/" + name)) {
                 if (input == null) {
                     throw new FileNotFoundException("Не найден ресурс wgssSTU.dll");
                 }
-                Files.copy(input, path);
+
+                Files.copy(input, path, new CopyOption[0]);
                 System.loadLibrary("wgssSTU");
+            } catch (IOException e) {
+                throw e;
             }
         }
 
         this.setTitle("Оценка качеcтва оказания услуг");
-        informStringLabel.setText("Начинаем...");
+        this.informStringLabel.setText("Начинаем...");
         this.panel.setPreferredSize(new Dimension(400, 200));
-        this.panel.add(informStringLabel);
-        this.add(this.panel, BorderLayout.NORTH);
+        this.panel.add(this.informStringLabel);
+        this.add(this.panel, "North");
         this.pack();
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
     }
 
     public static void main(String[] args) throws IOException {
-
         Main mainFrame = new Main();
-        String orderCode = JOptionPane.showInputDialog("Введите код заявления");
+        String orderCode = "";
+        if (args.length == 0) {
+            orderCode = JOptionPane.showInputDialog("Введите код заявления");
+        } else {
+            orderCode = args[0];
+        }
 
         try {
-            com.WacomGSS.STU.UsbDevice[] usbDevices = UsbDevice.getUsbDevices();
+            UsbDevice[] usbDevices = UsbDevice.getUsbDevices();
             if (usbDevices != null && usbDevices.length > 0) {
-
                 mkguFormVersion = adapter.getMkguFormVersion(orderCode);
-                if (("ALREADY_FILLED".equals(mkguFormVersion.get("status"))) ) {
-                    JOptionPane.showMessageDialog(null, "Оценка заявления с кодом " + orderCode + " уже была произведена.");
+                if ("ALREADY_FILLED".equals(mkguFormVersion.get("status"))) {
+                    JOptionPane.showMessageDialog((Component) null, "Оценка заявления с кодом " + orderCode + " уже была произведена.");
+                    System.exit(0);
+                } else if (!"OK".equals(mkguFormVersion.get("status"))) {
+                    JOptionPane.showMessageDialog((Component) null, "Заявление с кодом " + orderCode + " не найдено");
                     System.exit(0);
                 }
-                else if (!"OK".equals(mkguFormVersion.get("status"))) {
-                    JOptionPane.showMessageDialog(null, "Заявление с кодом " + orderCode + " не найдено");
-                    System.exit(0);
-                }
+
                 MkguQuestionXmlRoot questions = null;
+
                 try {
                     questions = getQuestions(mkguFormVersion, orderCode);
-                } catch (Exception e) {
-                    JOptionPane.showMessageDialog(null, "Не найдено заявление с кодом: " + orderCode);
+                } catch (Exception var10) {
+                    JOptionPane.showMessageDialog((Component) null, "Не найдено заявление с кодом: " + orderCode);
                     System.exit(0);
                 }
+
+                mainFrame.setLocation(200, 200);
                 mainFrame.setVisible(true);
                 EstimationQuestionForm estimationQuestionForm = null;
-                for (MkguQuestionXmlIndicator estimationQuestion : questions.getIndicator()) {
-                    List<AnswerVariant> answerVariants = new ArrayList<>();
-                    List<MkguQuestionXmlQuestions> stepAnswerVariants = estimationQuestion.getIndicator();
 
-                    stepAnswerVariants.forEach(variant ->
-                            answerVariants.add(new AnswerVariant(
-                                    variant.getQuestionValue(),
-                                    variant.getQuestionText(),
-                                    variant.getAltTitle()))
-                    );
-                    estimationQuestionForm = new EstimationQuestionForm(
-                            usbDevices[0],
-                            estimationQuestion.getIndicatorId(),
-                            estimationQuestion.getIndicatorId(),
-                            estimationQuestion.getQuestionTitle(),
-                            estimationQuestion.getDescriptionTitle(),
-                            answerVariants);
+                for (MkguQuestionXmlIndicator estimationQuestion: questions.getIndicator()) {
+                    List<AnswerVariant> answerVariants = new ArrayList();
+                    List<MkguQuestionXmlQuestions> stepAnswerVariants = estimationQuestion.getIndicator();
+                    stepAnswerVariants.forEach((variant) -> {
+                        answerVariants.add(new AnswerVariant(variant.getQuestionValue(), variant.getQuestionText(), variant.getAltTitle()));
+                    });
+                    estimationQuestionForm = new EstimationQuestionForm(usbDevices[0], estimationQuestion.getIndicatorId(), estimationQuestion.getIndicatorId(), estimationQuestion.getQuestionTitle(), estimationQuestion.getDescriptionTitle(), answerVariants);
 
                     while (estimationQuestionForm.getPressedButtonId() == null) {
-                        Thread.sleep(100);
+                        Thread.sleep(100L);
                     }
+
                     mainFrame.informStringLabel.setText("Ответ = " + estimationQuestionForm.getPressedButtonId());
-                    mainFrame.rates.add(new String[]{estimationQuestion.getIndicatorId(),
-                            estimationQuestionForm.getPressedButtonId()});
+                    mainFrame.rates.add(new String[]{estimationQuestion.getIndicatorId(), estimationQuestionForm.getPressedButtonId()});
                     estimationQuestionForm.dispose();
                 }
 
                 int status = adapter.postQuestions(version, orderCode, mainFrame.getRatesString(mainFrame.rates));
-
                 mainFrame.informStringLabel.setText("Оценка завершена. Статус = " + status);
-
-
                 if (estimationQuestionForm != null) {
-                    BufferedImage buyImage = new BuyImage(estimationQuestionForm.getCapability()).getBitmap();
-                    byte[] bitmapData = ProtocolHelper.flatten(buyImage,
-                            buyImage.getWidth(), buyImage.getHeight(),
-                            true);
-
-                    // Add the delagate that receives pen data.
+                    BufferedImage buyImage = (new BuyImage(estimationQuestionForm.getCapability())).getBitmap();
+                    byte[] bitmapData = ProtocolHelper.flatten(buyImage, buyImage.getWidth(), buyImage.getHeight(), true);
                     Tablet tablet = new Tablet();
                     tablet.usbConnect(usbDevices[0], true);
                     tablet.addTabletHandler(estimationQuestionForm);
-
-                    // Enable the pen data on the screen (if not already)
                     tablet.setInkingMode(InkingMode.Off);
                     tablet.writeImage(EncodingMode.EncodingMode_16bit_Bulk, bitmapData);
-
-
-                    Thread.sleep(10000);
+                    Thread.sleep(10000L);
                     tablet.setClearScreen();
                     tablet.disconnect();
+                    Thread.sleep(10000L);
+                    System.exit(0);
                 }
 
-
                 return;
-
-            } else {
-                throw new RuntimeException("No USB tablets attached");
             }
-        } catch (STUException e) {
-            JOptionPane.showMessageDialog(null, e.toString());
-            e.printStackTrace();
-        } catch (RuntimeException e) {
-            JOptionPane.showMessageDialog(null, e.toString());
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            JOptionPane.showMessageDialog(null, e.toString());
-            e.printStackTrace();
+
+            throw new RuntimeException("No USB tablets attached");
+        } catch (STUException var11) {
+            JOptionPane.showMessageDialog((Component) null, var11.toString());
+            var11.printStackTrace();
+        } catch (RuntimeException var12) {
+            JOptionPane.showMessageDialog((Component) null, var12.toString());
+            var12.printStackTrace();
+        } catch (InterruptedException var13) {
+            JOptionPane.showMessageDialog((Component) null, var13.toString());
+            var13.printStackTrace();
         }
+
     }
+
 
     private String getRatesString(List<String[]> rates) {
 

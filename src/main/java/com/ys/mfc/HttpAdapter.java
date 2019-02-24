@@ -28,9 +28,12 @@ public class HttpAdapter {
     private static HttpAdapter instance;
     public static final Logger log = LoggerFactory.getLogger(HttpAdapter.class);
     private final Gson gson = new Gson();
-    private String qualityUrlString = "http://10.200.200.10/cpgu/action/";
-    private String questsPartOfUrl = "getMkguQuestionnaires";
-    private String formVersPartOfUrl = "getMkguFormVersion?orderNumber=";
+    //    private String qualityUrlString = "http://10.200.200.10/cpgu/action/";
+    private String qualityUrlString = "http://10.2.139.25/mkgu/server/";
+    //    private String questsPartOfUrl = "getMkguQuestionnaires";
+    private String questsPartOfUrl = "cpgu/action/getMkguQuestionnaires";
+    //    private String formVersPartOfUrl = "getMkguFormVersion?orderNumber=";
+    private String formVersPartOfUrl = "cpgu/action/getMkguFormVersion?orderNumber=";
 //    private String orderNumberString = "0656051"; //hardcoded fo deb
 
     private HttpAdapter() {
