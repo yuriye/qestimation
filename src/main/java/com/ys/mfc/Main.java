@@ -119,53 +119,72 @@ public class Main extends JFrame {
                 mainFrame.setVisible(true);
                 EstimationQuestionForm estimationQuestionForm = null;
 
-                for (MkguQuestionXmlIndicator estimationQuestion: questions.getIndicator()) {
+                for (MkguQuestionXmlIndicator estimationQuestion : questions.getIndicator()) {
                     List<AnswerVariant> answerVariants = new ArrayList();
                     List<MkguQuestionXmlQuestions> stepAnswerVariants = estimationQuestion.getIndicator();
-                    stepAnswerVariants.forEach((variant) -> {
-                        answerVariants.add(new AnswerVariant(variant.getQuestionValue(), variant.getQuestionText(), variant.getAltTitle()));
-                    });
-                    estimationQuestionForm = new EstimationQuestionForm(usbDevices[0], estimationQuestion.getIndicatorId(), estimationQuestion.getIndicatorId(), estimationQuestion.getQuestionTitle(), estimationQuestion.getDescriptionTitle(), answerVariants);
+
+                    stepAnswerVariants.forEach(variant ->
+                            answerVariants.add(new AnswerVariant(
+                                    variant.getQuestionValue(),
+                                    variant.getQuestionText(),
+                                    variant.getAltTitle()))
+                    );
+                    estimationQuestionForm = new EstimationQuestionForm(
+                            usbDevices[0],
+                            estimationQuestion.getIndicatorId(),
+                            estimationQuestion.getIndicatorId(),
+                            estimationQuestion.getQuestionTitle(),
+                            estimationQuestion.getDescriptionTitle(),
+                            answerVariants);
 
                     while (estimationQuestionForm.getPressedButtonId() == null) {
-                        Thread.sleep(100L);
+                        Thread.sleep(100);
                     }
-
                     mainFrame.informStringLabel.setText("Ответ = " + estimationQuestionForm.getPressedButtonId());
-                    mainFrame.rates.add(new String[]{estimationQuestion.getIndicatorId(), estimationQuestionForm.getPressedButtonId()});
+                    mainFrame.rates.add(new String[]{estimationQuestion.getIndicatorId(),
+                            estimationQuestionForm.getPressedButtonId()});
                     estimationQuestionForm.dispose();
                 }
 
-                int status = adapter.postQuestions(version, orderCode, mainFrame.getRatesString(mainFrame.rates));
+                String status = adapter.postQuestions(version, orderCode, mainFrame.getRatesString(mainFrame.rates));
+
                 mainFrame.informStringLabel.setText("Оценка завершена. Статус = " + status);
+
+
                 if (estimationQuestionForm != null) {
-                    BufferedImage buyImage = (new BuyImage(estimationQuestionForm.getCapability())).getBitmap();
-                    byte[] bitmapData = ProtocolHelper.flatten(buyImage, buyImage.getWidth(), buyImage.getHeight(), true);
+                    BufferedImage buyImage = new BuyImage(estimationQuestionForm.getCapability()).getBitmap();
+                    byte[] bitmapData = ProtocolHelper.flatten(buyImage,
+                            buyImage.getWidth(), buyImage.getHeight(),
+                            true);
+
+
                     Tablet tablet = new Tablet();
                     tablet.usbConnect(usbDevices[0], true);
                     tablet.addTabletHandler(estimationQuestionForm);
                     tablet.setInkingMode(InkingMode.Off);
                     tablet.writeImage(EncodingMode.EncodingMode_16bit_Bulk, bitmapData);
-                    Thread.sleep(10000L);
+                    Thread.sleep(10000);
                     tablet.setClearScreen();
                     tablet.disconnect();
-                    Thread.sleep(10000L);
+                    Thread.sleep(10000);
                     System.exit(0);
                 }
 
                 return;
+
+            } else {
+                throw new RuntimeException("No USB tablets attached");
             }
 
-            throw new RuntimeException("No USB tablets attached");
-        } catch (STUException var11) {
-            JOptionPane.showMessageDialog((Component) null, var11.toString());
-            var11.printStackTrace();
-        } catch (RuntimeException var12) {
-            JOptionPane.showMessageDialog((Component) null, var12.toString());
-            var12.printStackTrace();
-        } catch (InterruptedException var13) {
-            JOptionPane.showMessageDialog((Component) null, var13.toString());
-            var13.printStackTrace();
+        } catch (STUException e) {
+            JOptionPane.showMessageDialog((Component) null, e.toString());
+            e.printStackTrace();
+        } catch (RuntimeException e) {
+            JOptionPane.showMessageDialog((Component) null, e.toString());
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            JOptionPane.showMessageDialog((Component) null, e.toString());
+            e.printStackTrace();
         }
 
     }

@@ -222,7 +222,8 @@ public class EstimationQuestionForm implements ITabletHandler {
             if (penData.getPressure() > 0) {
                 if (button.bounds.contains(Math.round(point.getX()), Math.round(point.getY()))) {
                     try {
-                        this.tablet.setClearScreen();
+                        if (this.tablet.isConnected())
+                            this.tablet.setClearScreen();
                     } catch (STUException e) {
                         e.printStackTrace();
                     }
