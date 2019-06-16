@@ -28,13 +28,9 @@ public class HttpAdapter {
     private static HttpAdapter instance;
     public static final Logger log = LoggerFactory.getLogger(HttpAdapter.class);
     private final Gson gson = new Gson();
-//        private String qualityUrlString = "http://10.200.200.10/cpgu/action/";
-//    private String qualityUrlString = "http://10.2.139.25/mkgu/server/";
-    private String qualityUrlString = "http://10.200.200.10/";
-    //    private String questsPartOfUrl = "getMkguQuestionnaires";
-    private String questsPartOfUrl = "cpgu/action/getMkguQuestionnaires";
-    //    private String formVersPartOfUrl = "getMkguFormVersion?orderNumber=";
-    private String formVersPartOfUrl = "cpgu/action/getMkguFormVersion?orderNumber=";
+    private String qualityUrlString = "http://10.200.200.10/cpgu/action/";
+    private String questsPartOfUrl = "getMkguQuestionnaires";
+    private String formVersPartOfUrl = "getMkguFormVersion?orderNumber=";
 //    private String orderNumberString = "0656051"; //hardcoded fo deb
 
     private HttpAdapter() {
@@ -94,7 +90,7 @@ public class HttpAdapter {
         return result;
     }
 
-    public String postQuestions(String version, String orderNumber, String answers) {
+    public int postQuestions(String version, String orderNumber, String answers) {
         TimeZone tz = TimeZone.getTimeZone("UTC");
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX");
         df.setTimeZone(tz);
@@ -112,7 +108,7 @@ public class HttpAdapter {
             log.info("query xmls[]: {}", query);
             post.setEntity(new UrlEncodedFormEntity(urlParameters));
             HttpResponse response = client.execute(post);
-            return response.getStatusLine().getReasonPhrase() + " (код = " + response.getStatusLine().getStatusCode() + ")";
+            return response.getStatusLine().getStatusCode();
         } catch (UnsupportedEncodingException var13) {
             var13.printStackTrace();
         } catch (ClientProtocolException var14) {
@@ -121,7 +117,7 @@ public class HttpAdapter {
             var15.printStackTrace();
         }
 
-        return "";
+        return 0;
     }
 
     public void printPostXml(String version, String orderNumber, String answers) {

@@ -27,6 +27,7 @@ public class EstimationQuestionForm implements ITabletHandler {
     }
 
     private Tablet tablet;
+    private String modelName;
     private Capability capability;
     private Information information;
 
@@ -44,6 +45,8 @@ public class EstimationQuestionForm implements ITabletHandler {
     private EncodingMode encodingMode; // How we send the bitmap to the device.
     private byte[] bitmapData; // This is the flattened data of the bitmap
 
+    private boolean readyToProcess = true;
+
     public EstimationQuestionForm(UsbDevice usbDevice,
                                   String indicatorQueue,
                                   String indicatorId,
@@ -55,15 +58,15 @@ public class EstimationQuestionForm implements ITabletHandler {
         this.indicatorTitle = indicatorTitle;
         this.indicatorDescription = indicatorDescription;
         this.answerVariants = answerVariants;
-
         this.tablet = new Tablet();
         int e = -1;
-        for (int i = 0; i < 10; i++) {
+
+        for (int i = 0; i < 100; i++) {
             e = tablet.usbConnect(usbDevice, true);
             if (e == 0) {
                 break;
             } else {
-                Thread.sleep(1000);
+                Thread.sleep(2000);
             }
         }
         if (e != 0) {
@@ -72,6 +75,7 @@ public class EstimationQuestionForm implements ITabletHandler {
 
         this.capability = tablet.getCapability();
         this.information = tablet.getInformation();
+        modelName = this.information.getModelName();
 
         this.headerHeight = this.capability.getScreenHeight() / 4;
         int offset = this.headerHeight;
@@ -172,7 +176,38 @@ public class EstimationQuestionForm implements ITabletHandler {
 
         // Enable the pen data on the screen (if not already)
         this.tablet.setInkingMode(InkingMode.Off);
-        this.tablet.writeImage(this.encodingMode, this.bitmapData);
+//        if (!this.tablet.isConnected()) {
+//            for (int i = 0; i < 100; i++) {
+//                e = tablet.usbConnect(usbDevice, true);
+//                if (e == 0) {
+//                    break;
+//                } else {
+//                    Thread.sleep(2000);
+//                }
+//            }
+//            if (e != 0) {
+//                throw new RuntimeException("Failed to connect to USB tablet, error " + e);
+//            }
+//        }
+        int connectionError = 0;
+        try {
+            this.tablet.writeImage(this.encodingMode, this.bitmapData);
+        }
+        catch (Exception ex) {
+            for (int i = 0; i < 20; i++) {
+                if (!this.tablet.isConnected())
+                    connectionError = tablet.usbConnect(usbDevice, true);
+                if (connectionError == 0) {
+                    break;
+                } else {
+                    Thread.sleep(2000);
+                }
+            }
+            if (connectionError != 0) {
+                throw new RuntimeException("Failed to connect to USB tablet, error " + e);
+            }
+        }
+        this.tablet.endImageData();
     }
 
     public void waitForButtonPress() throws InterruptedException {
@@ -216,26 +251,9 @@ public class EstimationQuestionForm implements ITabletHandler {
 
     @Override
     public void onPenData(PenData penData) {
-        Point2D.Float point = DrawingUtils.tabletToScreen(penData, this);
-        for (int i = buttons.size() - 1; i >= 0; i--) {
-            Button button = buttons.get(i);
-            if (penData.getPressure() > 0) {
-                if (button.bounds.contains(Math.round(point.getX()), Math.round(point.getY()))) {
-                    try {
-                        if (this.tablet.isConnected())
-                            this.tablet.setClearScreen();
-                    } catch (STUException e) {
-                        e.printStackTrace();
-                    }
-                    this.pressedButtonId = button.id;
-                    tablet.disconnect();
-
-//                    this.answerButtonListener.ansewrButtonPressed(
-//                            new AnswerButtonPressedEvent(this, "Нахата кнопка id = "));
-                    break;
-                }
-            }
-        }
+//        if (!readyToProcess) return;
+        if (!"STU-530".equals(modelName)) return;
+        pressedButton(penData);
     }
 
     private enum ButtonType {
@@ -278,33 +296,60 @@ public class EstimationQuestionForm implements ITabletHandler {
 
     @Override
     public void onUnhandledReportData(byte[] bytes) {
-
+//        System.out.println("onUnhandledReportData");
     }
 
 
     @Override
     public void onPenDataOption(PenDataOption penDataOption) {
-
+//        System.out.println("onPenDataOption");
     }
 
     @Override
     public void onPenDataEncrypted(PenDataEncrypted penDataEncrypted) {
-
+//        System.out.println("onPenDataEncrypted");
     }
 
     @Override
     public void onPenDataEncryptedOption(PenDataEncryptedOption penDataEncryptedOption) {
-
+//        System.out.println("onPenDataEncryptedOption");
     }
 
     @Override
     public void onPenDataTimeCountSequence(PenDataTimeCountSequence penDataTimeCountSequence) {
+//        if (!readyToProcess) return;
+        try {
+            tablet.endCapture();
+        } catch (STUException e) {
+            e.printStackTrace();
+        }
+        if (!"STU-540".equals(modelName)) return;
+        if (penDataTimeCountSequence.getPressure() < 100) return;
+            pressedButton(penDataTimeCountSequence);
+    }
 
+    private void pressedButton(PenData penData) {
+        readyToProcess = false;
+        Point2D.Float point = DrawingUtils.tabletToScreen(penData, this);
+        for (int i = buttons.size() - 1; i >= 0; i--) {
+            Button button = buttons.get(i);
+            if (penData.getPressure() > 0) {
+                if (button.bounds.contains(Math.round(point.getX()), Math.round(point.getY()))) {
+                    try {
+                        this.tablet.setClearScreen();
+                    } catch (STUException e) {
+                    }
+                    this.pressedButtonId = button.id;
+                    tablet.disconnect();
+                    break;
+                }
+            }
+        }
     }
 
     @Override
     public void onPenDataTimeCountSequenceEncrypted(PenDataTimeCountSequenceEncrypted penDataTimeCountSequenceEncrypted) {
-
+//        System.out.println("onPenDataTimeCountSequenceEncrypted");
     }
 
     @Override
@@ -319,7 +364,7 @@ public class EstimationQuestionForm implements ITabletHandler {
 
     @Override
     public void onEventDataSignature(EventDataSignature eventDataSignature) {
-
+        System.out.println("onEventDataSignature");
     }
 
     @Override

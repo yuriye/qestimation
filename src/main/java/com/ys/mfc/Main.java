@@ -146,7 +146,7 @@ public class Main extends JFrame {
                     estimationQuestionForm.dispose();
                 }
 
-                String status = adapter.postQuestions(version, orderCode, mainFrame.getRatesString(mainFrame.rates));
+                int status = adapter.postQuestions(version, orderCode, mainFrame.getRatesString(mainFrame.rates));
 
                 mainFrame.informStringLabel.setText("Оценка завершена. Статус = " + status);
 

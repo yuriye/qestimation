@@ -96,4 +96,6 @@ public class DrawingUtils {
                 (float) penData.getX() * estimationQuestionForm.getCapability().getScreenWidth() / estimationQuestionForm.getCapability().getTabletMaxX(),
                 (float) penData.getY() * estimationQuestionForm.getCapability().getScreenHeight() / estimationQuestionForm.getCapability().getTabletMaxY());
     }
+    //
+
 }
