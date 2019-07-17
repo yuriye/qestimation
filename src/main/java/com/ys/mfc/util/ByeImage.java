@@ -5,12 +5,12 @@ import com.WacomGSS.STU.Protocol.Capability;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
-public class BuyImage {
+public class ByeImage {
 
     BufferedImage bitmap;
     private Capability capability;
 
-    public BuyImage(Capability capability) {
+    public ByeImage(Capability capability) {
         this.capability = capability;
         createImage();
     }
@@ -29,7 +29,8 @@ public class BuyImage {
 
             // Draw question
             gfx.setColor(Color.BLACK);
-            gfx.setFont(new Font("Courier New", Font.BOLD, (int) fontSize));
+//            gfx.setFont(new Font("Courier New", Font.BOLD, (int) fontSize));
+            gfx.setFont(new Font("Times New Roman", Font.BOLD, (int) fontSize));
             DrawingUtils.drawLongStringBySpliting(gfx, "Спасибо! Ваша оценка успешно сохранена.",
                     (int) 0, 0,
                     (int) this.capability.getScreenWidth(),

@@ -135,7 +135,8 @@ public class EstimationQuestionForm implements ITabletHandler {
 
             // Draw question
             gfx.setColor(Color.BLACK);
-            gfx.setFont(new Font("Courier New", Font.BOLD, (int) fontSize));
+//            gfx.setFont(new Font("Courier New", Font.BOLD, (int) fontSize));
+            gfx.setFont(new Font("Times New Roman", Font.BOLD, (int) fontSize));
             DrawingUtils.drawLongStringBySpliting(gfx, indicatorDescription,
                     (int) 0, 0,
                     (int) this.capability.getScreenWidth(),
@@ -143,7 +144,8 @@ public class EstimationQuestionForm implements ITabletHandler {
                     false);
             // Draw the buttons
             boolean useColour = useColor; //effective final for lambda
-            gfx.setFont(new Font("Courier New", Font.BOLD, (int) fontSize));
+//            gfx.setFont(new Font("Courier New", Font.BOLD, (int) fontSize));
+            gfx.setFont(new Font("Times New Roman", Font.BOLD, (int) fontSize));
             buttons.forEach(btn -> {
                 if (useColour) {
                     gfx.setColor(Color.PINK);

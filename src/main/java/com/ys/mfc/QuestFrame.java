@@ -2,26 +2,30 @@ package com.ys.mfc;
 
 import com.WacomGSS.STU.STUException;
 import com.WacomGSS.STU.UsbDevice;
+
 import com.ys.mfc.mkgu.MkguQuestionXmlIndicator;
 import com.ys.mfc.mkgu.MkguQuestionXmlQuestions;
 import com.ys.mfc.mkgu.MkguQuestionXmlRoot;
 import com.ys.mfc.mkgu.MkguQuestionnaires;
+
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
 
-import javax.swing.*;
-import java.awt.*;
 import java.io.IOException;
 import java.io.StringReader;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class QuestFrame  extends JFrame {
+import javax.swing.*;
+import java.awt.*;
+
+public class QuestFrame extends JFrame {
 
     private String orderCode = "0656051";
     private HttpAdapter adapter = HttpAdapter.getInstance();
@@ -51,51 +55,6 @@ public class QuestFrame  extends JFrame {
         panel.add(btn);
         this.add(panel);
     }
-
-    private void onStart() throws STUException, InterruptedException {
-
-        mkguFormVersion = adapter.getMkguFormVersion(orderCode);
-        if ("OK".equals(mkguFormVersion.get("status"))) {
-            if (usbDevices == null || usbDevices.length <= 0) {
-                throw new RuntimeException("No USB tablets attached");
-            }
-//            orderCode = orderCodeTextFieldl.getText();
-            MkguQuestionXmlRoot questions = getQuestions(mkguFormVersion, orderCode);
-            for (MkguQuestionXmlIndicator estimationQuestion : questions.getIndicator()) {
-                java.util.List<AnswerVariant> answerVariants = new ArrayList<>();
-                java.util.List<MkguQuestionXmlQuestions> stepAnswerVariants = estimationQuestion.getIndicator();
-
-                stepAnswerVariants.forEach(variant ->
-                        answerVariants.add(new AnswerVariant(
-                                variant.getQuestionValue(),
-                                variant.getQuestionText(),
-                                variant.getAltTitle()))
-                );
-
-                EstimationQuestionForm estimationQuestionForm = new EstimationQuestionForm(usbDevices[0],
-                        estimationQuestion.getIndicatorId(),
-                        estimationQuestion.getIndicatorId(),
-                        estimationQuestion.getQuestionTitle(),
-                        estimationQuestion.getDescriptionTitle(),
-                        answerVariants);
-
-                estimationQuestionForm.setAnswerButtonListener(evt ->
-                        System.out.println(estimationQuestionForm.getPressedButtonId()));
-
-//                estimationQuestionForm.setAnswerButtonListener(e -> System.out.println("Нажата кнопка ответа "
-//                        + estimationQuestionForm.getPressedButtonId()));
-//                estimationQuestionForm.setVisible(true);
-                while (estimationQuestionForm.getPressedButtonId() == null) {
-                    Thread.sleep(100);
-                    Thread.yield();
-                }
-                System.out.println(estimationQuestionForm.getPressedButtonId());
-            }
-        } else {
-            throw new RuntimeException("No USB tablets attached");
-        }
-    }
-
 
     private static MkguQuestionXmlRoot getQuestions(Map<String, String> mkguFormVersion, String orderNumber) {
         java.util.List<MkguQuestionnaires> mkguQuestionnaires = HttpAdapter.getInstance().getMkguQuestionnaires();
@@ -158,5 +117,49 @@ public class QuestFrame  extends JFrame {
 
     public static void main(String[] args) {
         EventQueue.invokeLater(() -> runProgram());
+    }
+
+    private void onStart() throws STUException, InterruptedException {
+
+        mkguFormVersion = adapter.getMkguFormVersion(orderCode);
+        if ("OK".equals(mkguFormVersion.get("status"))) {
+            if (usbDevices == null || usbDevices.length <= 0) {
+                throw new RuntimeException("No USB tablets attached");
+            }
+//            orderCode = orderCodeTextFieldl.getText();
+            MkguQuestionXmlRoot questions = getQuestions(mkguFormVersion, orderCode);
+            for (MkguQuestionXmlIndicator estimationQuestion : questions.getIndicator()) {
+                java.util.List<AnswerVariant> answerVariants = new ArrayList<>();
+                java.util.List<MkguQuestionXmlQuestions> stepAnswerVariants = estimationQuestion.getIndicator();
+
+                stepAnswerVariants.forEach(variant ->
+                        answerVariants.add(new AnswerVariant(
+                                variant.getQuestionValue(),
+                                variant.getQuestionText(),
+                                variant.getAltTitle()))
+                );
+
+                EstimationQuestionForm estimationQuestionForm = new EstimationQuestionForm(usbDevices[0],
+                        estimationQuestion.getIndicatorId(),
+                        estimationQuestion.getIndicatorId(),
+                        estimationQuestion.getQuestionTitle(),
+                        estimationQuestion.getDescriptionTitle(),
+                        answerVariants);
+
+                estimationQuestionForm.setAnswerButtonListener(evt ->
+                        System.out.println(estimationQuestionForm.getPressedButtonId()));
+
+//                estimationQuestionForm.setAnswerButtonListener(e -> System.out.println("Нажата кнопка ответа "
+//                        + estimationQuestionForm.getPressedButtonId()));
+//                estimationQuestionForm.setVisible(true);
+                while (estimationQuestionForm.getPressedButtonId() == null) {
+                    Thread.sleep(100);
+                    Thread.yield();
+                }
+                System.out.println(estimationQuestionForm.getPressedButtonId());
+            }
+        } else {
+            throw new RuntimeException("No USB tablets attached");
+        }
     }
 }

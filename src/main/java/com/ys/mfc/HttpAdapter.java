@@ -26,12 +26,29 @@ import org.slf4j.LoggerFactory;
 
 public class HttpAdapter {
     private static HttpAdapter instance;
-    public static final Logger log = LoggerFactory.getLogger(HttpAdapter.class);
+//    public static final Logger log = LoggerFactory.getLogger(HttpAdapter.class);
+//    private final Gson gson = new Gson();
+//    private String qualityUrlString = "http://10.200.200.10/cpgu/action/";
+//    private String questsPartOfUrl = "getMkguQuestionnaires";
+//    private String formVersPartOfUrl = "getMkguFormVersion?orderNumber=";
+
+    //    private String orderNumberString = "0656051"; //hardcoded fo deb
+
+
+//    private static final Lock sLock = new ReentrantLock();
+//    public static final Logger log = LoggerFactory.getLogger(HttpAdapter.class);
+//    private TreeLoader tr;
+//    private TreeLoader trPopular;
+//    private Map<String, String> localSettings;
+//    private final JdomParser jdom = new JdomParser();
+    private static final String qualityUrlString = "http://10.2.139.25/mkgu/server/";
+    private static final String getFreeTime = "getfreetime";
+    private static final String getManagedOptions = "getmanagedoptions";
+    private static final String getOrderStatus = "cpgu/action/getOrderStatusTitle";
+    private static final String getMkguFormVersion = "cpgu/action/getMkguFormVersion";
+    private static final String getMkguQuestionnaires = "cpgu/action/getMkguQuestionnaires";
+    private static final String postMkguQuestionnaires = "cpgu/action/sendMkguFormAnswers";
     private final Gson gson = new Gson();
-    private String qualityUrlString = "http://10.200.200.10/cpgu/action/";
-    private String questsPartOfUrl = "getMkguQuestionnaires";
-    private String formVersPartOfUrl = "getMkguFormVersion?orderNumber=";
-//    private String orderNumberString = "0656051"; //hardcoded fo deb
 
     private HttpAdapter() {
 
@@ -48,8 +65,8 @@ public class HttpAdapter {
         Object result = new HashMap();
 
         try {
-            String urlString = qualityUrlString + formVersPartOfUrl + URLEncoder.encode(orderNumber, "UTF-8");
-            log.info("getMkguFormVersion: {}", urlString);
+            String urlString = qualityUrlString + getMkguFormVersion + "?orderNumber=" + URLEncoder.encode(orderNumber, "UTF-8");
+//            log.info("getMkguFormVersion: {}", urlString);
             URL url = new URL(urlString);
             InputStreamReader isr = new InputStreamReader(url.openStream(), "UTF-8");
 
@@ -61,7 +78,7 @@ public class HttpAdapter {
                 isr.close();
             }
         } catch (IOException var11) {
-            log.error("Connection fail");
+//            log.error("Connection fail");
         }
 
         return (Map) result;
@@ -72,8 +89,7 @@ public class HttpAdapter {
         List result = new ArrayList();
 
         try {
-            URL url = new URL(qualityUrlString + questsPartOfUrl);
-
+            URL url = new URL(qualityUrlString + getMkguQuestionnaires);
             InputStreamReader isr = new InputStreamReader(url.openStream(), "UTF-8");
 
             try {
@@ -99,13 +115,13 @@ public class HttpAdapter {
         try {
             String query = "<body><form-version>" + version + "</form-version>" + "<orderNumber>" + orderNumber + "</orderNumber>" + "<authorityId>" + "123" + "</authorityId>" + "<receivedDate>" + nowAsISO + "</receivedDate>" + "<okato>" + "50401000000" + "</okato>" + "<rates>" + answers + "</rates>" + "</body>";
             String urlString = qualityUrlString + "cpgu/action/sendMkguFormAnswers";
-            log.info("postQuestionsMkgu: {}", urlString);
+//            log.info("postQuestionsMkgu: {}", urlString);
             CloseableHttpClient client = HttpClientBuilder.create().build();
             HttpPost post = new HttpPost(urlString);
             post.setHeader("User-Agent", "UserAgent");
             List<BasicNameValuePair> urlParameters = new ArrayList();
             urlParameters.add(new BasicNameValuePair("xmls[]", query));
-            log.info("query xmls[]: {}", query);
+//            log.info("query xmls[]: {}", query);
             post.setEntity(new UrlEncodedFormEntity(urlParameters));
             HttpResponse response = client.execute(post);
             return response.getStatusLine().getStatusCode();
@@ -127,7 +143,6 @@ public class HttpAdapter {
         String nowAsISO = df.format(new Date());
 
         System.out.println("<body><form-version>" + version + "</form-version>" + "<orderNumber>" + orderNumber + "</orderNumber>" + "<authorityId>" + "123" + "</authorityId>" + "<receivedDate>" + nowAsISO + "</receivedDate>" + "<okato>" + "50401000000" + "</okato>" + "<rates>" + answers + "</rates>" + "</body>");
-
     }
 
 }

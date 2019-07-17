@@ -12,13 +12,11 @@ import com.ys.mfc.mkgu.MkguQuestionXmlIndicator;
 import com.ys.mfc.mkgu.MkguQuestionXmlQuestions;
 import com.ys.mfc.mkgu.MkguQuestionXmlRoot;
 import com.ys.mfc.mkgu.MkguQuestionnaires;
-import com.ys.mfc.util.BuyImage;
+import com.ys.mfc.util.ByeImage;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -39,10 +37,10 @@ import java.util.stream.Collectors;
 
 
 public class Main extends JFrame {
-    public static final Logger log = LoggerFactory.getLogger(HttpAdapter.class);
+//    public static final Logger log = LoggerFactory.getLogger(HttpAdapter.class);
 
     static HttpAdapter adapter = HttpAdapter.getInstance();
-    private static Map mkguFormVersion;
+    private static Map<String, String> mkguFormVersion;
     private static String formVersion;
 
     private String informString;
@@ -98,9 +96,11 @@ public class Main extends JFrame {
             UsbDevice[] usbDevices = UsbDevice.getUsbDevices();
             if (usbDevices != null && usbDevices.length > 0) {
                 mkguFormVersion = adapter.getMkguFormVersion(orderCode);
-                if ("ALREADY_FILLED".equals(mkguFormVersion.get("status"))) {
+                String orderStatus = mkguFormVersion.get("status");
+                if ("ALREADY_FILLED".equals(orderStatus)) {
                     JOptionPane.showMessageDialog((Component) null, "Оценка заявления с кодом " + orderCode + " уже была произведена.");
                     System.exit(0);
+
                 } else if (!"OK".equals(mkguFormVersion.get("status"))) {
                     JOptionPane.showMessageDialog((Component) null, "Заявление с кодом " + orderCode + " не найдено");
                     System.exit(0);
@@ -110,7 +110,8 @@ public class Main extends JFrame {
 
                 try {
                     questions = getQuestions(mkguFormVersion, orderCode);
-                } catch (Exception var10) {
+                } catch (Exception e) {
+                    e.printStackTrace();
                     JOptionPane.showMessageDialog((Component) null, "Не найдено заявление с кодом: " + orderCode);
                     System.exit(0);
                 }
@@ -152,7 +153,7 @@ public class Main extends JFrame {
 
 
                 if (estimationQuestionForm != null) {
-                    BufferedImage buyImage = new BuyImage(estimationQuestionForm.getCapability()).getBitmap();
+                    BufferedImage buyImage = new ByeImage(estimationQuestionForm.getCapability()).getBitmap();
                     byte[] bitmapData = ProtocolHelper.flatten(buyImage,
                             buyImage.getWidth(), buyImage.getHeight(),
                             true);
@@ -211,7 +212,7 @@ public class Main extends JFrame {
         mkguQuestionXmlRoot.setOrderNumber(orderNumber);
         version = mkguFormVersion.get("version");
         String xml = mkguQuestionnaires.stream()
-                .filter(element -> element.getVersion().equals(mkguFormVersion.get("version")))
+                .filter(element -> element.getVersion().equals(version))
                 .collect(Collectors.toList())
                 .get(0)
                 .getXml();
