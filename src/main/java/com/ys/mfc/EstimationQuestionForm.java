@@ -15,12 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EstimationQuestionForm implements ITabletHandler {
-    List<AnswerVariant> answerVariants;
-    List<Button> buttons = new ArrayList<>();
-    private String indicatorQueue;
-    private String indicatorId;
-    private String indicatorTitle;
-    private String indicatorDescription;
+    private List<AnswerVariant> answerVariants;
+    private List<Button> buttons = new ArrayList<>();
 
     public Tablet getTablet() {
         return tablet;
@@ -29,34 +25,25 @@ public class EstimationQuestionForm implements ITabletHandler {
     private Tablet tablet;
     private String modelName;
     private Capability capability;
-    private Information information;
 
-    public String getPressedButtonId() {
+    String getPressedButtonId() {
         return pressedButtonId;
     }
 
     private String pressedButtonId = null;
     private int headerHeight;
-    private AnswerButtonPressedListener answerButtonListener;
     private int pad = 4;
 
     private List<PenData> penData; // Array of data being stored. This can
-    private BufferedImage bitmap; // This bitmap that we display on the screen.
     private EncodingMode encodingMode; // How we send the bitmap to the device.
     private byte[] bitmapData; // This is the flattened data of the bitmap
 
-    private boolean readyToProcess = true;
-
-    public EstimationQuestionForm(UsbDevice usbDevice,
-                                  String indicatorQueue,
-                                  String indicatorId,
-                                  String indicatorTitle,
-                                  String indicatorDescription,
-                                  List<AnswerVariant> answerVariants) throws STUException, InterruptedException {
-        this.indicatorQueue = indicatorQueue;
-        this.indicatorId = indicatorId;
-        this.indicatorTitle = indicatorTitle;
-        this.indicatorDescription = indicatorDescription;
+    EstimationQuestionForm(UsbDevice usbDevice,
+                           String indicatorQueue,
+                           String indicatorId,
+                           String indicatorTitle,
+                           String indicatorDescription,
+                           List<AnswerVariant> answerVariants) throws STUException, InterruptedException {
         this.answerVariants = answerVariants;
         this.tablet = new Tablet();
         int e = -1;
@@ -74,8 +61,8 @@ public class EstimationQuestionForm implements ITabletHandler {
         }
 
         this.capability = tablet.getCapability();
-        this.information = tablet.getInformation();
-        modelName = this.information.getModelName();
+        Information information = tablet.getInformation();
+        modelName = information.getModelName();
 
         this.headerHeight = this.capability.getScreenHeight() / 4;
         int offset = this.headerHeight;
@@ -122,7 +109,8 @@ public class EstimationQuestionForm implements ITabletHandler {
         // would be better to
         // create individual bitmaps for screen and client at native
         // resolutions.
-        this.bitmap = new BufferedImage(
+        // This bitmap that we display on the screen.
+        BufferedImage bitmap = new BufferedImage(
                 this.capability.getScreenWidth(),
                 this.capability.getScreenHeight(),
                 BufferedImage.TYPE_INT_RGB);
@@ -169,8 +157,8 @@ public class EstimationQuestionForm implements ITabletHandler {
             gfx.dispose();
         }
 
-        this.bitmapData = ProtocolHelper.flatten(this.bitmap,
-                this.bitmap.getWidth(), this.bitmap.getHeight(),
+        this.bitmapData = ProtocolHelper.flatten(bitmap,
+                bitmap.getWidth(), bitmap.getHeight(),
                 useColor);
 
         // Add the delagate that receives pen data.
@@ -219,11 +207,10 @@ public class EstimationQuestionForm implements ITabletHandler {
         }
     }
 
-    public void setAnswerButtonListener(AnswerButtonPressedListener answerButtonListener) {
-        this.answerButtonListener = answerButtonListener;
+    void setAnswerButtonListener(AnswerButtonPressedListener answerButtonListener) {
     }
 
-    RectangleDimensions getAnswerButtonDimension() {
+    private RectangleDimensions getAnswerButtonDimension() {
         int buttonCount = answerVariants.size();
         int answersAreaHeight = capability.getScreenHeight() - this.headerHeight;
 
@@ -233,14 +220,14 @@ public class EstimationQuestionForm implements ITabletHandler {
         return dim;
     }
 
-    public void dispose() {
+    void dispose() {
         // Ensure that you correctly disconnect from the tablet, otherwise you are
         // likely to get errors when wanting to connect a second time.
         if (this.tablet != null) {
             try {
                 this.tablet.setInkingMode(InkingMode.Off);
                 this.tablet.setClearScreen();
-            } catch (Throwable t) {
+            } catch (Throwable ignored) {
             }
             this.tablet.disconnect();
             this.tablet = null;
@@ -331,7 +318,7 @@ public class EstimationQuestionForm implements ITabletHandler {
     }
 
     private void pressedButton(PenData penData) {
-        readyToProcess = false;
+//        boolean readyToProcess = false;
         Point2D.Float point = DrawingUtils.tabletToScreen(penData, this);
         for (int i = buttons.size() - 1; i >= 0; i--) {
             Button button = buttons.get(i);
