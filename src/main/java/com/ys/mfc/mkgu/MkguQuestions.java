@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.ys.mfc.HttpAdapter;
+import com.ys.mfc.Main;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
@@ -18,7 +19,7 @@ public class MkguQuestions {
 
     private static MkguQuestionXmlRoot getQuestions(Map<String, String> mkguFormVersion, String text) {
 
-        List<MkguQuestionnaires> mkguQuestionnaires = HttpAdapter.getInstance().getMkguQuestionnaires();
+        List<MkguQuestionnaires> mkguQuestionnaires = HttpAdapter.getInstance().getMkguQuestionnaires(Main.onlyUI);
         MkguQuestionXmlRoot mkguQuestionXmlRoot = new MkguQuestionXmlRoot();
         String xml = "";
         Iterator mkguQuestionnairesIterator = mkguQuestionnaires.iterator();

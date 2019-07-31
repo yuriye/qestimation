@@ -7,8 +7,8 @@ import com.WacomGSS.STU.Tablet;
 import com.WacomGSS.STU.UsbDevice;
 import com.ys.mfc.util.DrawingUtils;
 
-import java.awt.*;
 import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -17,23 +17,12 @@ import java.util.List;
 public class EstimationQuestionForm implements ITabletHandler {
     private List<AnswerVariant> answerVariants;
     private List<Button> buttons = new ArrayList<>();
-
-    public Tablet getTablet() {
-        return tablet;
-    }
-
     private Tablet tablet;
     private String modelName;
     private Capability capability;
-
-    String getPressedButtonId() {
-        return pressedButtonId;
-    }
-
     private String pressedButtonId = null;
     private int headerHeight;
     private int pad = 4;
-
     private List<PenData> penData; // Array of data being stored. This can
     private EncodingMode encodingMode; // How we send the bitmap to the device.
     private byte[] bitmapData; // This is the flattened data of the bitmap
@@ -110,52 +99,47 @@ public class EstimationQuestionForm implements ITabletHandler {
         // create individual bitmaps for screen and client at native
         // resolutions.
         // This bitmap that we display on the screen.
-        BufferedImage bitmap = new BufferedImage(
-                this.capability.getScreenWidth(),
-                this.capability.getScreenHeight(),
-                BufferedImage.TYPE_INT_RGB);
-        {
-            Graphics2D gfx = bitmap.createGraphics();
-            gfx.setColor(Color.WHITE);
-            gfx.fillRect(0, 0, bitmap.getWidth(), bitmap.getHeight());
+        BufferedImage bitmap = new BufferedImage(this.capability.getScreenWidth(), this.capability.getScreenHeight(), BufferedImage.TYPE_INT_RGB);
+        Graphics2D gfx = bitmap.createGraphics();
+        gfx.setColor(Color.WHITE);
+        gfx.fillRect(0, 0, bitmap.getWidth(), bitmap.getHeight());
 
-            double fontSize = (this.buttons.get(0).bounds.getHeight() / 3); // pixels
+        double fontSize = (this.buttons.get(0).bounds.getHeight() / 3); // pixels
 
-            // Draw question
-            gfx.setColor(Color.BLACK);
+        // Draw question
+        gfx.setColor(Color.BLACK);
 //            gfx.setFont(new Font("Courier New", Font.BOLD, (int) fontSize));
-            gfx.setFont(new Font("Times New Roman", Font.BOLD, (int) fontSize));
-            DrawingUtils.drawLongStringBySpliting(gfx, indicatorDescription,
-                    (int) 0, 0,
-                    (int) this.capability.getScreenWidth(),
-                    (int) this.headerHeight,
-                    false);
-            // Draw the buttons
-            boolean useColour = useColor; //effective final for lambda
+        gfx.setFont(new Font("Times New Roman", Font.BOLD, (int) fontSize));
+        DrawingUtils.drawLongStringBySpliting(gfx, indicatorDescription,
+                (int) 0, 0,
+                (int) this.capability.getScreenWidth(),
+                (int) this.headerHeight,
+                false);
+        // Draw the buttons
+        boolean useColour = useColor; //effective final for lambda
 //            gfx.setFont(new Font("Courier New", Font.BOLD, (int) fontSize));
-            gfx.setFont(new Font("Times New Roman", Font.BOLD, (int) fontSize));
-            buttons.forEach(btn -> {
-                if (useColour) {
-                    gfx.setColor(Color.PINK);
-                    gfx.fillRect((int) btn.bounds.getX(),
-                            (int) btn.bounds.getY(),
-                            (int) btn.bounds.getWidth(),
-                            (int) btn.bounds.getHeight());
-                }
-                gfx.setColor(Color.BLACK);
-                gfx.drawRect((int) btn.bounds.getX(),
+        gfx.setFont(new Font("Times New Roman", Font.BOLD, (int) fontSize));
+        buttons.forEach(btn -> {
+            if (useColour) {
+                gfx.setColor(Color.PINK);
+                gfx.fillRect((int) btn.bounds.getX(),
                         (int) btn.bounds.getY(),
                         (int) btn.bounds.getWidth(),
                         (int) btn.bounds.getHeight());
-                DrawingUtils.drawLongStringBySpliting(gfx, btn.text,
-                        (int) btn.bounds.getX(),
-                        (int) btn.bounds.getY(),
-                        (int) btn.bounds.getWidth(),
-                        (int) btn.bounds.getHeight(),
-                        true);
-            });
-            gfx.dispose();
-        }
+            }
+            gfx.setColor(Color.BLACK);
+            gfx.drawRect((int) btn.bounds.getX(),
+                    (int) btn.bounds.getY(),
+                    (int) btn.bounds.getWidth(),
+                    (int) btn.bounds.getHeight());
+            DrawingUtils.drawLongStringBySpliting(gfx, btn.text,
+                    (int) btn.bounds.getX(),
+                    (int) btn.bounds.getY(),
+                    (int) btn.bounds.getWidth(),
+                    (int) btn.bounds.getHeight(),
+                    true);
+        });
+        gfx.dispose();
 
         this.bitmapData = ProtocolHelper.flatten(bitmap,
                 bitmap.getWidth(), bitmap.getHeight(),
@@ -182,8 +166,7 @@ public class EstimationQuestionForm implements ITabletHandler {
         int connectionError = 0;
         try {
             this.tablet.writeImage(this.encodingMode, this.bitmapData);
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             for (int i = 0; i < 20; i++) {
                 if (!this.tablet.isConnected())
                     connectionError = tablet.usbConnect(usbDevice, true);
@@ -198,6 +181,14 @@ public class EstimationQuestionForm implements ITabletHandler {
             }
         }
         this.tablet.endImageData();
+    }
+
+    public Tablet getTablet() {
+        return tablet;
+    }
+
+    String getPressedButtonId() {
+        return pressedButtonId;
     }
 
     public void waitForButtonPress() throws InterruptedException {
@@ -245,31 +236,6 @@ public class EstimationQuestionForm implements ITabletHandler {
         pressedButton(penData);
     }
 
-    private enum ButtonType {
-        NAV, ANSWERVARIANT;
-    }
-
-    private static class RectangleDimensions {
-        int height = 0;
-        int widht = 0;
-    }
-
-    private class Button {
-        Rectangle bounds; // in Screen coordinates
-        String text;
-        ButtonType buttonType = ButtonType.NAV;
-        String id = "";
-//        ActionListener click = (e -> {
-//            EstimationQuestionForm.this.pressedButtonId = id;
-//            EstimationQuestionForm.this.answerButtonListener
-//                    .ansewrButtonPressed(new AnswerButtonPressedEvent(EstimationQuestionForm.this, "Button pressed id = " + id));
-//        });
-//
-//        void performClick() {
-////            actionPerformed(new AnswerButtonPressedEvent(this, "Нахата кнопка id = " + id));
-//        }
-    }
-
     public EncodingMode getEncodingMode() {
         return encodingMode;
     }
@@ -287,7 +253,6 @@ public class EstimationQuestionForm implements ITabletHandler {
     public void onUnhandledReportData(byte[] bytes) {
 //        System.out.println("onUnhandledReportData");
     }
-
 
     @Override
     public void onPenDataOption(PenDataOption penDataOption) {
@@ -314,7 +279,7 @@ public class EstimationQuestionForm implements ITabletHandler {
         }
         if (!"STU-540".equals(modelName)) return;
         if (penDataTimeCountSequence.getPressure() < 100) return;
-            pressedButton(penDataTimeCountSequence);
+        pressedButton(penDataTimeCountSequence);
     }
 
     private void pressedButton(PenData penData) {
@@ -379,6 +344,31 @@ public class EstimationQuestionForm implements ITabletHandler {
     @Override
     public void onEncryptionStatus(EncryptionStatus encryptionStatus) {
 
+    }
+
+    private enum ButtonType {
+        NAV, ANSWERVARIANT;
+    }
+
+    private static class RectangleDimensions {
+        int height = 0;
+        int widht = 0;
+    }
+
+    private class Button {
+        Rectangle bounds; // in Screen coordinates
+        String text;
+        ButtonType buttonType = ButtonType.NAV;
+        String id = "";
+//        ActionListener click = (e -> {
+//            EstimationQuestionForm.this.pressedButtonId = id;
+//            EstimationQuestionForm.this.answerButtonListener
+//                    .ansewrButtonPressed(new AnswerButtonPressedEvent(EstimationQuestionForm.this, "Button pressed id = " + id));
+//        });
+//
+//        void performClick() {
+////            actionPerformed(new AnswerButtonPressedEvent(this, "Нахата кнопка id = " + id));
+//        }
     }
 
 }

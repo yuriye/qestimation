@@ -57,7 +57,7 @@ public class QuestFrame extends JFrame {
     }
 
     private static MkguQuestionXmlRoot getQuestions(Map<String, String> mkguFormVersion, String orderNumber) {
-        java.util.List<MkguQuestionnaires> mkguQuestionnaires = HttpAdapter.getInstance().getMkguQuestionnaires();
+        java.util.List<MkguQuestionnaires> mkguQuestionnaires = HttpAdapter.getInstance().getMkguQuestionnaires(Main.onlyUI);
         MkguQuestionXmlRoot mkguQuestionXmlRoot = new MkguQuestionXmlRoot();
         mkguQuestionXmlRoot.setOrderNumber(orderNumber);
         String xml = mkguQuestionnaires.stream()

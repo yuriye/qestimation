@@ -39,10 +39,12 @@ import java.util.stream.Collectors;
 public class Main extends JFrame {
 //    public static final Logger log = LoggerFactory.getLogger(HttpAdapter.class);
 
+    public static Boolean onlyUI = false;
+
     static HttpAdapter adapter = HttpAdapter.getInstance();
     private static Map<String, String> mkguFormVersion;
     private static String formVersion;
-
+    private static String version;
     private String informString;
     private JLabel informStringLabel = new JLabel();
     private JPanel panel = new JPanel();
@@ -52,7 +54,6 @@ public class Main extends JFrame {
     private String orderCode;
     private String okato = "50401000000";
     private String authorityId = "123";
-    private static String version;
 
 
     public Main() throws IOException {
@@ -84,9 +85,11 @@ public class Main extends JFrame {
     }
 
     public static void main(String[] args) throws IOException {
+        if (args.length > 1 && args[1].equals("1"))
+            onlyUI = true;
         Main mainFrame = new Main();
         String orderCode = "";
-        if (args.length == 0) {
+        if (args.length == 2 || args.length == 0) {
             orderCode = JOptionPane.showInputDialog("Введите код заявления");
         } else {
             orderCode = args[0];
@@ -94,21 +97,24 @@ public class Main extends JFrame {
 
         try {
             UsbDevice[] usbDevices = UsbDevice.getUsbDevices();
+            MkguQuestionXmlRoot questions = null;
             if (usbDevices != null && usbDevices.length > 0) {
-                mkguFormVersion = adapter.getMkguFormVersion(orderCode);
-                String orderStatus = mkguFormVersion.get("status");
-                if ("ALREADY_FILLED".equals(orderStatus)) {
-                    JOptionPane.showMessageDialog((Component) null, "Оценка заявления с кодом " + orderCode + " уже была произведена.");
-                    System.exit(0);
+                if (!onlyUI) {
+                    mkguFormVersion = adapter.getMkguFormVersion(orderCode);
+                    String orderStatus = mkguFormVersion.get("status");
+                    if ("ALREADY_FILLED".equals(orderStatus)) {
+                        JOptionPane.showMessageDialog((Component) null, "Оценка заявления с кодом " + orderCode + " уже была произведена.");
+                        System.exit(0);
 
-                } else if (!"OK".equals(mkguFormVersion.get("status"))) {
-                    JOptionPane.showMessageDialog((Component) null, "Заявление с кодом " + orderCode + " не найдено");
-                    System.exit(0);
+                    } else if (!"OK".equals(mkguFormVersion.get("status"))) {
+                        JOptionPane.showMessageDialog((Component) null, "Заявление с кодом " + orderCode + " не найдено");
+                        System.exit(0);
+                    }
+
+
                 }
-
-                MkguQuestionXmlRoot questions = null;
-
                 try {
+                    mkguFormVersion = adapter.getMkguFormVersion(orderCode);
                     questions = getQuestions(mkguFormVersion, orderCode);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -146,8 +152,9 @@ public class Main extends JFrame {
                             estimationQuestionForm.getPressedButtonId()});
                     estimationQuestionForm.dispose();
                 }
-
-                int status = adapter.postQuestions(version, orderCode, mainFrame.getRatesString(mainFrame.rates));
+                int status = 1200;
+                if (!onlyUI)
+                    status = adapter.postQuestions(version, orderCode, mainFrame.getRatesString(mainFrame.rates));
 
                 mainFrame.informStringLabel.setText("Оценка завершена. Статус = " + status);
 
@@ -190,24 +197,8 @@ public class Main extends JFrame {
 
     }
 
-
-    private String getRatesString(List<String[]> rates) {
-
-        StringBuilder stringBuilder = new StringBuilder();
-        rates.forEach(rate -> {
-            stringBuilder.append("<rate indicator-id=\"");
-            stringBuilder.append(rate[0]);
-            stringBuilder.append("\" value-id=\"");
-            stringBuilder.append(rate[1]);
-            stringBuilder.append("\">");
-            stringBuilder.append(rate[1]);
-            stringBuilder.append("</rate>");
-        });
-        return stringBuilder.toString();
-    }
-
     private static MkguQuestionXmlRoot getQuestions(Map<String, String> mkguFormVersion, String orderNumber) {
-        List<MkguQuestionnaires> mkguQuestionnaires = HttpAdapter.getInstance().getMkguQuestionnaires();
+        List<MkguQuestionnaires> mkguQuestionnaires = HttpAdapter.getInstance().getMkguQuestionnaires(onlyUI);
         MkguQuestionXmlRoot mkguQuestionXmlRoot = new MkguQuestionXmlRoot();
         mkguQuestionXmlRoot.setOrderNumber(orderNumber);
         version = mkguFormVersion.get("version");
@@ -257,6 +248,21 @@ public class Main extends JFrame {
             e.printStackTrace();
         }
         return new MkguQuestionXmlRoot();
+    }
+
+    private String getRatesString(List<String[]> rates) {
+
+        StringBuilder stringBuilder = new StringBuilder();
+        rates.forEach(rate -> {
+            stringBuilder.append("<rate indicator-id=\"");
+            stringBuilder.append(rate[0]);
+            stringBuilder.append("\" value-id=\"");
+            stringBuilder.append(rate[1]);
+            stringBuilder.append("\">");
+            stringBuilder.append(rate[1]);
+            stringBuilder.append("</rate>");
+        });
+        return stringBuilder.toString();
     }
 
 }
