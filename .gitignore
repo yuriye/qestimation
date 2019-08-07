@@ -1,3 +1,7 @@
 .idea/
 target/
+<<<<<<< HEAD
 qestimation.iml
+=======
+*.iml
+>>>>>>> 190807.1
