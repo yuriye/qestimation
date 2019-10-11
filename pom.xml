@@ -7,6 +7,15 @@
     <groupId>com.ys.mfc</groupId>
     <artifactId>qestimation</artifactId>
     <version>1.0-SNAPSHOT</version>
+
+    <repositories>
+        <repository>
+            <id>localrep</id>
+            <name>local repository</name>
+            <url>file:C:/mavenlocalrepo</url>
+        </repository>
+    </repositories>
+
     <build>
         <defaultGoal>package</defaultGoal>
         <plugins>

@@ -67,7 +67,6 @@ public class Main extends JFrame {
                 if (input == null) {
                     throw new FileNotFoundException("Не найден ресурс wgssSTU.dll");
                 }
-
                 Files.copy(input, path, new CopyOption[0]);
                 System.loadLibrary("wgssSTU");
             } catch (IOException e) {
